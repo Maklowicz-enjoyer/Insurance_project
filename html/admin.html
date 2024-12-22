@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pl">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Panel Administratora - SkanPolis</title>
+		<link rel="stylesheet" href="../css/admin.css" />
+	</head>
+	<body>
+		<header class="header">
+			<div class="header-container">
+				<a href="login.html" class="btn back">POWRÓT</a>
+				<h1 class="admin-title">Panel Administratora</h1>
+				<div class="logo">SKAN<span class="part1">POLIS</span></div>
+			</div>
+		</header>
+
+		<main>
+			<section class="admin-section">
+				<h2 class="section-title">Zarządzanie Ubezpieczeniami</h2>
+				<!-- Tabela z ubezpieczeniami -->
+				<table class="admin-table">
+					<thead>
+						<tr>
+							<th>ID</th>
+							<th>Ubezpieczyciel</th>
+							<th>Typ Ubezpieczenia</th>
+							<th>Właściciel</th>
+							<th>Data Ważności</th>
+							<th>Cena</th>
+							<th>Opcje</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>1</td>
+							<td>PZU</td>
+							<td>OC</td>
+							<td>Jan Kowalski</td>
+							<td>2024-12-31</td>
+							<td>450 zł</td>
+							<td>
+								<button class="btn edit">Edytuj</button>
+								<button class="btn delete">Usuń</button>
+							</td>
+						</tr>
+						<tr>
+							<td>2</td>
+							<td>Warta</td>
+							<td>AC</td>
+							<td>Anna Nowak</td>
+							<td>2025-01-15</td>
+							<td>700 zł</td>
+							<td>
+								<button class="btn edit">Edytuj</button>
+								<button class="btn delete">Usuń</button>
+							</td>
+						</tr>
+						<tr>
+							<td>3</td>
+							<td>Allianz</td>
+							<td>OC/AC</td>
+							<td>Piotr Zawadzki</td>
+							<td>2024-11-20</td>
+							<td>580 zł</td>
+							<td>
+								<button class="btn edit">Edytuj</button>
+								<button class="btn delete">Usuń</button>
+							</td>
+						</tr>
+						<tr>
+							<td>4</td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td>
+								<button class="btn edit">Edytuj</button>
+								<button class="btn delete">Usuń</button>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</section>
+
+			<section class="add-insurance">
+				<h2 class="section-title">Dodaj Ubezpieczenie</h2>
+				<form class="add-insurance-form">
+					<label for="insurer">Ubezpieczyciel:</label>
+					<input type="text" id="insurer" name="insurerr" required />
+
+					<label for="insurance-type">Typ Ubezpieczenia:</label>
+					<select
+						id="insurance-type"
+						name="insurance-type"
+						class="input-field"
+						required
+					>
+						<option value="" disabled selected>Wybierz kategorię</option>
+						<option value=""></option>
+						<option value="OC">OC</option>
+						<option value="OC/AC">OC/AC</option>
+					</select>
+
+					<label for="owner">Wiek właściciela:</label>
+					<select id="owner" name="owner" class="input-field" required>
+						<option value="" disabled selected>Wybierz kategorię</option>
+						<option value="18-25">18-25</option>
+						<option value="26-35">26-35</option>
+						<option value="36-55">36-55</option>
+						<option value="56-75">56-75</option>
+						<option value="76 i więcej">76 i więcej</option>
+					</select>
+					<label for="details">Szczegóły polisy:</label>
+					<textarea id="details" name="details" rows="4" required></textarea>
+
+					<label for="expiry-date">Data Ważności:</label>
+					<input type="date" id="expiry-date" name="expiry-date" required />
+
+					<label for="price">Cena (zł):</label>
+					<input type="number" id="price" name="price" step="0.01" required />
+
+					<label for="usage">Typ użytkowania (leasing/prywatnie)</label>
+					<select id="usage" name="usage" required>
+						<option value="" disabled selected>Wybierz typ</option>
+						<option value="LEASING">LEASING</option>
+						<option value="PRYWATNIE">PRYWATNIE</option>
+					</select>
+
+					<label for="engine-capacity">Pojemność silnika (cm^3):</label>
+					<select id="engine-capacity" name="engine-capacity" required>
+						<option value="" disabled selected>Wybierz kategorię</option>
+						<option value="500-999">500-999</option>
+						<option value="1000-1499">1000-1499</option>
+						<option value="1500-1999">1500-1999</option>
+						<option value="2000-2999">2000-2999</option>
+						<option value="3000-3999">3000-3999</option>
+						<option value="4000-5499">4000-5499</option>
+						<option value="5500-7300">5500-7300</option>
+					</select>
+
+					<label for="damage">Lata od ostatniej szkody</label>
+					<input type="number" id="damage" name="damage" min="0" required />
+
+					<label for="fuel">Rodzaj paliwa</label>
+					<select id="fuel" name="fuel" required>
+						<option value="" disabled selected>Wybierz rodzaj paliwa</option>
+						<option value="BENZYNA">BENZYNA</option>
+						<option value="Diesel">Diesel</option>
+						<option value="BENZYNA+LPG">BENZYNA+LPG</option>
+						<option value="HYBRYDA">HYBRYDA</option>
+						<option value="PRĄD">PRĄD</option>
+					</select>
+
+					<label for="mileage">Planowany kilometraż roczny (tys. km)</label>
+					<select id="mileage" name="mileage" required>
+						<option value="" disabled selected>Wybierz przedział</option>
+						<option value="0-2">0-2</option>
+						<option value="2-5">2-5</option>
+						<option value="5-10">5-10</option>
+						<option value="10-20">10-20</option>
+						<option value="20+">20 i więcej</option>
+					</select>
+
+					<button type="submit" class="btn add">Dodaj Ubezpieczenie</button>
+				</form>
+			</section>
+		</main>
+
+		<footer class="footer">
+			<p>© 2024 SkanPolis. Wszelkie prawa zastrzeżone.</p>
+		</footer>
+	</body>
+</html>

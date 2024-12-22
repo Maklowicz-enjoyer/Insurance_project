@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkanPolis - Znajdź Ubezpieczenie</title>
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+  
+  <header class="header">
+    <div class="header-container">
+      <h1 class="logo"><span class="part1">SKAN</span>POLIS</h1>
+      <div class="header-buttons">
+        <a href="../index.html" class="btn back">POWRÓT</a>
+        <a href="account.html" class="btn acc">MOJE KONTO</a>
+        <a href="../index.html" class="btn logout">WYLOGUJ SIĘ</a>
+        
+      </div>
+     
+    </div>
+  </header>
+
+  
+  <main>
+    <h2 class="title">FORMULARZ</h2>
+    <form action="#" class="insurance-form">
+        
+        <div class="field-group">
+            <label for="dob">Data urodzenia kierowcy</label>
+            <input type="date" id="dob">
+          </div>
+          <div class="field-group">
+            <label for="insurance-date">Data rozpoczęcia ubezpieczenia</label>
+            <input type="date" id="insurance-date">
+          </div>
+    
+          <div class="field-group">
+            <label for="brand">Marka pojazdu</label>
+            <input type="text" id="brand">
+          </div>
+          <div class="field-group">
+            <label for="insurance-type">Typ ubezpieczenia</label>
+            <select id="insurance-type" name="insurance-type">
+                <option value=""></option>  
+                <option value="OC">OC</option>
+                <option value="OC/AC">OC/AC</option>
+              </select>
+          </div>
+    
+          <div class="field-group">
+            <label for="model">Model pojazdu</label>
+            <input type="text" id="model">
+          </div>
+          <div class="field-group">
+            <label for="usage">Typ użytkowania (leasing/prywatnie)</label>
+            <select id="usage" name="usage">
+                <option value=""></option>
+                <option value="LEASING">LEASING</option>
+                <option value="PRYWATNIE">PRYWATNIE</option>
+              </select>
+          </div>
+    
+          <div class="field-group">
+            <label for="year">Rok produkcji</label>
+            <input type="number" id="year">
+          </div>
+          <div class="field-group">
+            <label for="license-date">Data wydania prawa jazdy</label>
+            <input type="date" id="license-date">
+          </div>
+    
+          <div class="field-group">
+            <label for="engine">Pojemność silnika (cm^3)</label>
+            <input type="capacity" id="engine-capacity">
+          </div>
+          <div class="field-group">
+            <label for="damage">Lata od ostatniej szkody</label>
+            <input type="number" id="damage">
+          </div>
+    
+          <div class="field-group">
+            <label for="fuel">Rodzaj paliwa</label>
+            <select id="fuel" name="fuel">
+                <option value=""></option>
+                <option value="BENZYNA">BENZYNA</option>
+                <option value="ROPA">ROPA</option>
+                <option value="BENZYNA+LPG">BENZYNA+LPG</option>
+                <option value="HYBRYDA">HYBRYDA</option>
+                <option value="PRĄD">PRĄD</option>
+              </select>
+          </div>
+          <div class="field-group">
+            <label for="mileage">Planowany kilometraż roczny (TYS.KM)</label>
+            <select id="fuel" name="fuel">
+                <option value=""></option>
+                <option value="0-2">0-2</option>
+                <option value="2-5">2-5</option>
+                <option value="5-10">5-10</option>
+                <option value="10-20">10-20</option>
+                <option value="20 i więcej">20 i więcej</option>
+              </select>
+        </div>
+      </form>
+      
+      <a href="list.html" class="search-btn">SZUKAJ POLISY</a>
+
+      <h2 class="main-heading">Dobrze, że wybrałeś(aś) kalkulator OC i AC SKANPOLIS</h2>
+
+      <p class="info-text">
+        Kalkulator OC i AC SKANPOLIS prezentuje wyłącznie aktualne oferty OC i OC+AC.
+        Oferty ubezpieczeń dostępne w kalkulatorze OC AC są ofertami firm ubezpieczeniowych, a ich ceny są wyliczane przez towarzystwa na podstawie danych wprowadzonych w formularzu przez użytkownika serwisu.
+      </p>
+      
+  </main>
+  <footer class="footer">
+    <p>© 2024 Skanpolis. Wszelkie prawa zastrzeżone.</p>
+</footer>
+</body>
+</html>

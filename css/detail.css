@@ -1,0 +1,154 @@
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  html, body {
+    font-family: Arial, sans-serif;
+    background-color: #f9fff9;
+    color: #333;
+    height: 100%;
+  }
+  
+  
+  .header {
+    background: linear-gradient(to right, #ccff66, #8DC26F);
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+  
+  .logo {
+    font-size: 28px;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  .logo .part1 {
+    color: #007e00;
+  }
+  
+  .header-buttons {
+    display: flex;
+    gap: 12px;
+  }
+  
+  .btn {
+    background-color: green;
+    color: #fff;
+    padding: 8px 16px;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .btn:hover {
+    background-color: #4da64d;
+  }
+  
+  
+  main {
+    padding: 120px 20px 40px; 
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  
+  .offer-detail {
+    border: 2px solid #99cc99;
+    background-color: #e6ffe6;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .offer-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid green;
+  }
+  
+  .offer-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #007e00;
+  }
+  
+  .offer-coverage {
+    font-size: 14px;
+    color: #555;
+  }
+  
+  .offer-price span {
+    font-size: 18px;
+    font-weight: bold;
+    color: #007e00;
+  }
+  
+  .offer-details h3 {
+    margin-bottom: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  .offer-description {
+    background-color: #ddd;
+    padding: 15px;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #333;
+  }
+  
+  .send-option {
+    text-align: center;
+    margin-top: 20px;
+  }
+  
+  .send-btn {
+    background-color: #007e00;
+    color: #fff;
+    padding: 12px 30px;
+    font-size: 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  
+  .send-btn:hover {
+    background-color: #005c00;
+  }
+  
+  
+  .footer {
+    background-color: #f2f2f2;
+    text-align: center;
+    padding: 10px;
+    font-size: 14px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    color: #333;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
