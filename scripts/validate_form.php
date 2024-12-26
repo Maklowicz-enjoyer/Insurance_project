@@ -1,6 +1,4 @@
 <?php
-
-var_dump($_POST);
 // Check if the form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $errors = [];
@@ -15,11 +13,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $errors['insurance-date'] = "Data rozpoczęcia ubezpieczenia jest wymagana.";
     }
 
-    // Validate brand
+    // Validate vehicle brand
     if (empty($_POST['brand'])) {
         $errors['brand'] = "Marka pojazdu jest wymagana.";
-    } elseif (!preg_match("/^[a-zA-Z\s]+$/", $_POST['brand'])) {
-        $errors['brand'] = "Marka pojazdu może zawierać tylko litery.";
+    } elseif (!preg_match("/^[a-zA-Z0-9\s]+$/", $_POST['brand'])) {
+        $errors['brand'] = "Marka pojazdu może zawierać tylko litery i cyfry.";
     }
 
     // Validate insurance type
@@ -27,7 +25,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $errors['insurance-type'] = "Typ ubezpieczenia jest wymagany.";
     }
 
-    // Validate model
+    // Validate vehicle model
     if (empty($_POST['model'])) {
         $errors['model'] = "Model pojazdu jest wymagany.";
     }
@@ -50,10 +48,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // Validate engine capacity
-    if (empty($_POST['engine-capacity'])) {
-        $errors['engine-capacity'] = "Pojemność silnika jest wymagana.";
-    } elseif (!filter_var($_POST['engine-capacity'], FILTER_VALIDATE_INT, ["options" => ["min_range" => 50, "max_range" => 10000]])) {
-        $errors['engine-capacity'] = "Podaj poprawną pojemność silnika (50-10000 cm³).";
+    if (empty($_POST['capacity'])) {
+        $errors['capacity'] = "Pojemność silnika jest wymagana.";
+    } elseif (!filter_var($_POST['capacity'], FILTER_VALIDATE_INT, ["options" => ["min_range" => 50, "max_range" => 10000]])) {
+        $errors['capacity'] = "Podaj poprawną pojemność silnika (50-10000 cm³).";
     }
 
     // Validate damage-free years
@@ -73,14 +71,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $errors['mileage'] = "Planowany kilometraż roczny jest wymagany.";
     }
 
-    // If no errors, process the data
+    // Check if there are errors
     if (empty($errors)) {
         echo "Formularz przesłany pomyślnie!";
-        // Here you can handle the form data, e.g., save it to a database.
+
+        // Process the form data here (e.g., save to database)
     } else {
+        // Display errors
         foreach ($errors as $field => $error) {
             echo "<p>Błąd w polu $field: $error</p>";
         }
     }
+    header("Location: login.php");
 }
-
+?>

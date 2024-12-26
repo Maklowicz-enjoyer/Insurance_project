@@ -41,23 +41,28 @@
           }
 
           // If no validation errors, check the database
-          if (empty($errors)) {
-              try {
-                  $query = "SELECT haslo FROM User WHERE email = :email";
-                  $stmt = $pdo->prepare($query);
-                  $stmt->execute(['email' => $email]);
-                  $user = $stmt->fetch(PDO::FETCH_ASSOC);
+          try {
+              $query = "SELECT haslo, SUser FROM User WHERE email = :email";
+              $stmt = $pdo->prepare($query);
+              $stmt->execute(['email' => $email]);
+              $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-                  if ($user && password_verify($password, $user['haslo'])) {
-                      // Login successful: Redirect to main.html
-                      header("Location: ../html/main.html");
+              if ($user && password_verify($password, $user['haslo'])) {
+                  // Check if the user is an admin (SUser = 1)
+                  if ($user['SUser'] == 1) {
+                      // Login successful for admin: Redirect to admin.html
+                      header("Location: admin.php");
                       exit;
                   } else {
-                      $errors[] = 'Invalid email or password.';
+                      // Login successful for regular user: Redirect to main.html
+                      header("Location: ../html/main.html");
+                      exit;
                   }
-              } catch (PDOException $e) {
-                  $errors[] = 'Database error: ' . $e->getMessage();
+              } else {
+                  $errors[] = 'Invalid email or password.';
               }
+          } catch (PDOException $e) {
+              $errors[] = 'Database error: ' . $e->getMessage();
           }
       }
 

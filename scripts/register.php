@@ -63,8 +63,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'age' => 18 // Replace with a form field or default value
                 ]);
 
-                // Redirect to main.html
-                header("Location: ../html/main.html");
+
+                header("Location: login.php");
                 exit;
             }
         } catch (PDOException $e) {
