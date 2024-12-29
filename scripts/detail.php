@@ -2,11 +2,17 @@
 require 'db_connect.php';
 
 try {
+    session_start();
+
     if (!isset($_GET['id'])) {
         die('ID oferty nie zostało przekazane w URL.');
     }
     
     $insuranceId = intval($_GET['id']);
+
+    if (isset($_GET['price'])) {
+        $_SESSION['calculated_price'] = floatval($_GET['price']);
+    }
 
     // Pobranie szczegółowych danych oferty z bazy
     $stmt = $pdo->prepare("SELECT * FROM Insurance WHERE Insurance_ID = :id");
@@ -19,9 +25,10 @@ try {
     }
 
     // Przetwarzanie danych oferty
-    session_start();
+    
     $vehicleInfo = $_SESSION['vehicle_info'] ?? null;
-
+    $offers = $_SESSION['offers'] ?? null;
+    $calculatedPrice = $_SESSION['calculated_price'] ?? null;
 
 } catch (PDOException $e) {
     die("Błąd połączenia z bazą danych: " . $e->getMessage());
@@ -51,7 +58,7 @@ try {
     <section class="offer-detail">
       <div class="offer-summary">
         <h2 class="offer-title"><?= htmlspecialchars($offer['Insurance_name']); ?></h2>
-        <p class="offer-price">Cena: <span><?= number_format($offer['calculated_price'], 2); ?> zł</span></p>
+        <p class="offer-price">Cena: <span><?= number_format($calculatedPrice, 2); ?> zł</span></p>
       </div>
       <div class="offer-details">
         <h3>SZCZEGÓŁY WYSZUKANEJ OFERTY:</h3>

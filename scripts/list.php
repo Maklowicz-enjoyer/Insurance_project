@@ -7,7 +7,6 @@ if (!isset($_SESSION['offers'])) {
 $offers = $_SESSION['offers'];
 $vehicleInfo = $_SESSION['vehicle_info'];
 
-
 ?>
 
 <!DOCTYPE html>
@@ -54,7 +53,7 @@ $vehicleInfo = $_SESSION['vehicle_info'];
             <p><?= htmlspecialchars($offer['Insurance_type']); ?></p>
             <p><strong><?= number_format($offer['calculated_price'], 2); ?> zł</strong></p>
           </div>
-          <a href="detail.php?id=<?= htmlspecialchars($offer['Insurance_ID']); ?>" class="btn choose-btn">Wybierz ofertę</a>
+          <a href="detail.php?id=<?= htmlspecialchars($offer['Insurance_ID']); ?>&price=<?= htmlspecialchars($offer['calculated_price']); ?>" class="btn choose-btn">Wybierz ofertę</a>
         </div>
       </div>
       <?php endforeach; ?>
