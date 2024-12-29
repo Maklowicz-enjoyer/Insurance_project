@@ -24,7 +24,7 @@
   
   <main>
     <h2 class="title">FORMULARZ</h2>
-    <form action="../scripts/validate_form.php" class="insurance-form">
+    <form action="../scripts/manage_insurance.php" class="insurance-form">
         
         <div class="field-group">
             <label for="dob">Data urodzenia kierowcy</label>
@@ -49,8 +49,17 @@
           </div>
     
           <div class="field-group">
-            <label for="model">Model pojazdu</label>
-            <input type="text" id="model">
+              <label for="typ_nadwozia">Typ Nadwozia:</label>
+              <select id="typ_nadwozia" name="typ_nadwozia" required>
+                  <option value="" disabled selected>Wybierz typ nadwozia</option>
+                  <option value="Sedan">Sedan</option>
+                  <option value="SUV">SUV</option>
+                  <option value="Kombi">Kombi</option>
+                  <option value="Hatchback">Hatchback</option>
+                  <option value="Kompakt">Kompakt</option>
+                  <option value="Coupe">Coupe</option>
+                  <option value="Kabriolet">Kabriolet</option>
+              </select>
           </div>
           <div class="field-group">
             <label for="usage">Typ użytkowania (leasing/prywatnie)</label>
@@ -103,7 +112,7 @@
         </div>
       </form>
       
-      <a href="../scripts/validate_form.php" class="search-btn">SZUKAJ POLISY</a>
+      <a href="../scripts/manage_insurance.php" class="search-btn">SZUKAJ POLISY</a>
 
       <h2 class="main-heading">Dobrze, że wybrałeś(aś) kalkulator OC i AC SKANPOLIS</h2>
 
