@@ -20,14 +20,18 @@
 
 		<main>
 			<h2 class="title">FORMULARZ</h2>
-			<form action="../scripts/calculate_insurance.php" class="insurance-form" method="post">
+			<form
+				action="../scripts/calculate_insurance.php"
+				class="insurance-form"
+				method="post"
+			>
 				<div class="field-group">
 					<label for="dob">Data urodzenia kierowcy</label>
 					<input type="date" id="dob" name="dob" />
 				</div>
 				<div class="field-group">
 					<label for="insurance-date">Data rozpoczęcia ubezpieczenia</label>
-					<input type="date" id="insurance-date" name="insurance-name" />
+					<input type="date" id="insurance-date" name="insurance-date" />
 				</div>
 
 				<div class="field-group">
@@ -44,8 +48,15 @@
 				</div>
 
 				<div class="field-group">
-					<label for="model">Model pojazdu</label>
-					<input type="text" id="model" name="model" />
+					<label for="bodyType">Typ nadwozia</label>
+					<select id="bodyType" name="bodyType">
+						<option value="Sedan">Sedan</option>
+						<option value="Kombi">Kombi</option>
+						<option value="Hatchback">Hatchback</option>
+						<option value="Van">Van</option>
+						<option value="SUV">SUV</option>
+						<option value="Inne">Inne</option>
+					</select>
 				</div>
 				<div class="field-group">
 					<label for="usage">Typ użytkowania (leasing/prywatnie)</label>
