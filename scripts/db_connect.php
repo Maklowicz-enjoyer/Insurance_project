@@ -4,7 +4,7 @@ global $pdo;
 $host = 'localhost';
 $db = 'insurance_db';
 $user = 'root';
-$dbPassword = '';
+$dbPassword = 'Oprogr@mowanie24';
 
 $dsn = "mysql:host=localhost;dbname=insurance_db;charset=UTF8";
 
