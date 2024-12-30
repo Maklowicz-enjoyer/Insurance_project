@@ -26,6 +26,11 @@
       
 
       if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if(isset($_POST['action'])){
+          $action = $_POST['action'];
+          
+          if($action === 'login'){
+
           // Retrieve and sanitize input
           $email = trim($_POST['email'] ?? '');
           $password = trim($_POST['password'] ?? '');
@@ -62,15 +67,19 @@
                     header("Location: ../html/main.html");
                     exit;
 
-                  } else {
+                  }else {
                       $errors[] = 'Invalid email or password.';
                   }
               } catch (PDOException $e) {
                   $errors[] = 'Database error: ' . $e->getMessage();
               }
           }
+        } elseif ($action === 'forgot_pass'){
+          header('Location: password_retrieval.php');
+          exit();
+        }
       }
-
+    }
       // Display errors if any
       if (!empty($errors)) {
           echo '<div class="error-messages"><ul>';
@@ -90,8 +99,8 @@
         <input type="password" id="password" name="password" placeholder="Wpisz hasło">
 
         <!-- Buttons Below the Input Fields -->
-        <button type="submit" class="login-btn">ZALOGUJ SIĘ</button>
-        <button type="button" class="reset-btn">Zapomniałem hasła</button>
+        <button type="submit" class="login-btn" name="action" value="login">ZALOGUJ SIĘ</button>
+        <button type="submit" class="reset-btn" name="action" value="forgot_pass">Zapomniałem hasła</button>
       </form>
     </div>
   </main>

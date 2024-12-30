@@ -54,39 +54,6 @@ try {
       <p class="login-info">Zalogowano jako: <span class="user-email"><?php echo htmlspecialchars($user['email'], ENT_QUOTES, 'UTF-8'); ?></span></p>
     </section>
 
-    <!---
-    <section class="notifications">
-      <h2>Powiadomienia</h2>
-      <div class="notification-options">
-        <label>
-          <input type="checkbox" id="reminder-end" aria-label="Przypomnienie o końcu ubezpieczenia"> Przypomnienie o końcu ubezpieczenia
-        </label>
-        <label>
-          <input type="checkbox" id="new-offers" aria-label="Powiadomienia o nowych ofertach"> Powiadomienia o nowych ofertach
-        </label>
-      </div>
-    </section>
-    -->
-    <section class="saved-calc">
-      <h3 class="section-title">Poprzednie kalkulacje</h3>
-      <div class="calc-container">
-        <!-- Przykładowe dane dla kalkulacji -->
-        <div class="calc-card">
-          <h4 class="car-title">[Marka i Model]</h4>
-          <p class="car-details">[Dane samochodu]</p>
-          <p class="stage">Etap: <span>Kalkulacja</span></p>
-          <a href="main.html" class="btn green">Uzupełnij dane</a>
-        </div>
-        <div class="calc-card">
-          <h4 class="car-title">[Marka i Model]</h4>
-          <p class="car-details">[Dane samochodu]</p>
-          <p class="stage">Etap: <span>Oferty</span></p>
-          <a href="list.html" class="btn green">Zobacz oferty</a>
-        </div>
-      </div>
-      <a href="../html/main.html" class="btn grey">Zrób nową kalkulację</a>
-    </section>
-
     <section class="saved-policies">
       <h3 class="section-title">Zapisane polisy</h3>
       <div class="calc-container">
