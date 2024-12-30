@@ -24,8 +24,23 @@ try {
         die("Nie znaleziono oferty o podanym identyfikatorze.");
     }
 
-    // Przetwarzanie danych oferty
-    
+    //Obsługa zapisywania oferty
+    if($_SERVER['REQUEST_METHOD'] === 'POST'){
+        if(!isset($_SESSION['Users_ID'])) {
+            die("Musisz być zalogowany, aby zapisać ofertę");
+        }
+        $userID = $_SESSION['Users_ID'];
+
+        $savestmt = $pdo->prepare("UPDATE Insurance SET Users_ID = :userID WHERE Insurance_ID = :insuranceId");
+        $savestmt->execute([
+            'userID' => $userID,
+            'insuranceId' => $insuranceId
+        ]);
+
+        $message = "Oferta została zapisana pomyślnie";
+    }
+
+    //Dane sesji
     $vehicleInfo = $_SESSION['vehicle_info'] ?? null;
     $offers = $_SESSION['offers'] ?? null;
     $calculatedPrice = $_SESSION['calculated_price'] ?? null;
@@ -72,8 +87,14 @@ try {
           <?php endif; ?>
         </div>
       </div>
-      <div class="send-option">
-        <button class="btn send-btn">WYŚLIJ NA MAIL-a</button>
+     <!-- Formularz zapisywania oferty -->
+      <div class="save-offer">
+        <form method="POST">
+            <button type="submit" class="btn save-btn">ZAPISZ OFERTĘ</button>
+        </form>
+        <?php if (isset($message)): ?>
+          <p class="success-message"><?= htmlspecialchars($message); ?></p>
+        <?php endif; ?>
       </div>
     </section>
   </main>

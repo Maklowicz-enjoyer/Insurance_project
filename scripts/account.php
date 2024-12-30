@@ -22,10 +22,11 @@ try {
     }
 
     // Pobieranie zapisanych polis użytkownika
-    $sql = "SELECT Insurance_name, Insurance_type FROM Insurance WHERE Users_ID = :Users_ID";
+    $sql = "SELECT Insurance_name, Insurance_type, Price FROM Insurance WHERE Users_ID = :Users_ID";
     $stmt = $pdo->prepare($sql);
     $stmt->execute(['Users_ID' => $userID]);
     $savedIns = $stmt->fetchAll();
+
 } catch (PDOException $e) {
     die("Błąd bazy danych: " . $e->getMessage());
 }
@@ -86,15 +87,16 @@ try {
       <a href="../html/main.html" class="btn grey">Zrób nową kalkulację</a>
     </section>
 
-    <section class="purchased-policies">
-      <h3 class="section-title">Kupione polisy</h3>
+    <section class="saved-policies">
+      <h3 class="section-title">Zapisane polisy</h3>
       <div class="calc-container">
         <?php if (!empty($savedIns)): ?>
           <?php foreach ($savedIns as $insurance): ?>
             <div class="calc-card">
               <h4 class="car-title"><?php echo htmlspecialchars($insurance['Insurance_name'], ENT_QUOTES, 'UTF-8'); ?></h4>
               <p class="car-details">Typ polisy: <span><?php echo htmlspecialchars($insurance['Insurance_type'], ENT_QUOTES, 'UTF-8'); ?></span></p>
-              <p class="price">Cena: <strong>XXX Zł</strong></p>
+              <p class="price">Cena: <strong><?php echo number_format($insurance['Price'], 2); ?> zł</strong></p>
+              </div>
             </div>
           <?php endforeach; ?>
         <?php else: ?>
