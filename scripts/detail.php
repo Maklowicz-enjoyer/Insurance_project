@@ -49,7 +49,7 @@ try {
       <div class="header-buttons">
         <a href="list.php" class="btn back">POWRÓT</a>
         <a href="../html/main.html" class="btn back">ZMIEŃ DANE</a>
-        <a href="../html/account.html" class="btn acc">MOJE KONTO</a>
+        <a href="account.php" class="btn acc">MOJE KONTO</a>
         <a href="../index.html" class="btn logout">WYLOGUJ SIĘ</a>
       </div>
     </div>

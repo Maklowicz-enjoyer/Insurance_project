@@ -23,6 +23,7 @@
       <?php
       require 'db_connect.php'; // Ensure this file correctly connects to the database
       $errors = [];
+      
 
       if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           // Retrieve and sanitize input
@@ -47,11 +48,20 @@
                   $stmt = $pdo->prepare($query);
                   $stmt->execute(['email' => $email]);
                   $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
+                  
                   if ($user && password_verify($password, $user['haslo'])) {
-                      // Login successful: Redirect to main.html
-                      header("Location: ../html/main.html");
-                      exit;
+                    //Zapisywanie ID usera do sesji
+                    $query = "SELECT Users_ID FROM User WHERE email = :email";
+                    $stmt = $pdo->prepare($query);
+                    $stmt->execute(['email' => $email]);
+                    $userData = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                    session_start();
+                    $_SESSION['Users_ID'] = $userData['Users_ID'];
+                    // Login successful: Redirect to main.html
+                    header("Location: ../html/main.html");
+                    exit;
+
                   } else {
                       $errors[] = 'Invalid email or password.';
                   }
