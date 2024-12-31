@@ -23,7 +23,7 @@ $vehicleInfo = $_SESSION['vehicle_info'];
       <h1 class="logo"><span class="part1">SKAN</span>POLIS</h1>
       <div class="header-buttons">
         <a href="../html/main.html" class="btn back">ZMIEŃ DANE</a>
-        <a href="../html/account.html" class="btn acc">MOJE KONTO</a>
+        <a href="account.php" class="btn acc">MOJE KONTO</a>
         <a href="../index.html" class="btn logout">WYLOGUJ SIĘ</a>
       </div>
     </div>

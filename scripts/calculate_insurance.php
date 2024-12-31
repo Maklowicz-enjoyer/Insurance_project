@@ -3,7 +3,7 @@ require 'db_connect.php';
 
 
 try{
-    if (empty($_POST['dob']) || empty($_POST['damage']) || empty($_POST['usage'])) {
+    if (empty($_POST['dob']) || empty($_POST['usage']) || empty($_POST['insurance-type'])) {
         die('Brak wymaganych danych!');
     }
     //Pobieranie danych z formularza
@@ -11,6 +11,7 @@ try{
     $damage = $_POST['damage']; // Liczba lat od ostatniego wypadku
     $usage = $_POST['usage']; // Typ użytkowania
     $type = $_POST['insurance-type']; //Typ ubezpieczenia
+
 
 //Obliczanie wagi na podstawie wieku
 function AgeWeight($birthDate){
@@ -38,8 +39,8 @@ function BodyTypeWeight($bodyType){
 }
 //Waga na podsatwie ostatniego wypadku
 function LastAccidentWeight($yearsSinceAcc) {
-    if ($yearsSinceAcc === null) return 0.8;
-    if ($yearsSinceAcc == 0 ) return 1.5;
+    if ($yearsSinceAcc === null || $yearsSinceAcc === '') return 0.8; //brak wypadku
+    if ($yearsSinceAcc === 0 ) return 1.5;
     if ($yearsSinceAcc <= 2) return 1.3;
     if ($yearsSinceAcc <= 5 ) return 1.1;
 

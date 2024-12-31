@@ -22,9 +22,16 @@
       <!-- PHP: Display errors -->
       <?php
       require 'db_connect.php'; // Ensure this file correctly connects to the database
+      session_start();
       $errors = [];
+      
 
       if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if(isset($_POST['action'])){
+          $action = $_POST['action'];
+          
+          if($action === 'login'){
+
           // Retrieve and sanitize input
           $email = trim($_POST['email'] ?? '');
           $password = trim($_POST['password'] ?? '');
@@ -43,24 +50,33 @@
           // If no validation errors, check the database
           if (empty($errors)) {
               try {
-                  $query = "SELECT haslo FROM User WHERE email = :email";
+                  $query = "SELECT Users_ID, haslo FROM User WHERE email = :email";
                   $stmt = $pdo->prepare($query);
                   $stmt->execute(['email' => $email]);
                   $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
+                  
                   if ($user && password_verify($password, $user['haslo'])) {
-                      // Login successful: Redirect to main.html
-                      header("Location: ../html/main.html");
-                      exit;
-                  } else {
+                  
+
+                    
+                    $_SESSION['Users_ID'] = $userData['Users_ID'];
+                    // Login successful: Redirect to main.html
+                    header("Location: ../html/main.html");
+                    exit;
+
+                  }else {
                       $errors[] = 'Invalid email or password.';
                   }
               } catch (PDOException $e) {
                   $errors[] = 'Database error: ' . $e->getMessage();
               }
           }
+        } elseif ($action === 'forgot_pass'){
+          header('Location: password_retrieval.php');
+          exit();
+        }
       }
-
+    }
       // Display errors if any
       if (!empty($errors)) {
           echo '<div class="error-messages"><ul>';
@@ -80,8 +96,8 @@
         <input type="password" id="password" name="password" placeholder="Wpisz hasło">
 
         <!-- Buttons Below the Input Fields -->
-        <button type="submit" class="login-btn">ZALOGUJ SIĘ</button>
-        <button type="button" class="reset-btn">Zapomniałem hasła</button>
+        <button type="submit" class="login-btn" name="action" value="login">ZALOGUJ SIĘ</button>
+        <button type="submit" class="reset-btn" name="action" value="forgot_pass">Zapomniałem hasła</button>
       </form>
     </div>
   </main>

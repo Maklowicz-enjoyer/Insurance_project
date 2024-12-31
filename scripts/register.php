@@ -10,6 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
     $password = trim($_POST['password'] ?? '');
     $confirmPassword = trim($_POST['confirm_password'] ?? '');
+    $kod = trim($_POST['kod'] ?? '');
 
     // Validate email
     if (empty($email)) {
@@ -51,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $errors[] = 'The email address is already registered.';
             } else {
                 // Insert user into the database
-                $insertQuery = "INSERT INTO User (email, haslo, SUser, Wiek) VALUES (:email, :password, :isSuperUser, :age)";
+                $insertQuery = "INSERT INTO User (email, haslo, SUser, Wiek, kod) VALUES (:email, :password, :isSuperUser, :age, :kod)";
                 $stmt = $pdo->prepare($insertQuery);
 
                 // Hash the password securely
@@ -60,7 +61,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'email' => $email,
                     'password' => $hashedPassword,
                     'isSuperUser' => 0, // Default value for SUser
-                    'age' => 18 // Replace with a form field or default value
+                    'age' => 18, // Replace with a form field or default value
+                    'kod' => $kod
                 ]);
 
                 // Redirect to main.html
@@ -115,6 +117,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <label for="confirm_password">Powtórz hasło</label>
             <input type="password" id="confirm_ password" name="confirm_password" placeholder="Ponownie wpisz hasło">
+
+            <label for="kod">Podaj 6-cyfrowy kod odzyskiwania</label>
+            <input type="number" id="kod" name="kod" placeholder="Podaj 6-cyfrowy kod">
+
 
             <button type="submit" class="register-btn">ZAREJESTRUJ SIĘ</button>
         </form>
