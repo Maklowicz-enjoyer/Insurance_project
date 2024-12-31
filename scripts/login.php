@@ -50,19 +50,24 @@
           // If no validation errors, check the database
           if (empty($errors)) {
               try {
-                  $query = "SELECT Users_ID, haslo FROM User WHERE email = :email";
+                  $query = "SELECT Users_ID, haslo,SUser FROM User WHERE email = :email";
                   $stmt = $pdo->prepare($query);
                   $stmt->execute(['email' => $email]);
                   $user = $stmt->fetch(PDO::FETCH_ASSOC);
                   
                   if ($user && password_verify($password, $user['haslo'])) {
-                  
 
-                    
-                    $_SESSION['Users_ID'] = $user['Users_ID'];
-                    // Login successful: Redirect to main.html
-                    header("Location: ../html/main.html");
-                    exit;
+                      if ($user['SUser'] == 1) {
+                          // Login successful for admin: Redirect to admin.php
+                          header("Location: admin.php");
+                          exit;
+                      } else {
+                          // Store Users_ID in session
+                          $_SESSION['Users_ID'] = $user['Users_ID'];
+                          // Login successful: Redirect to main.html
+                          header("Location: ../html/main.html");
+                          exit;
+                      }
 
                   }else {
                       $errors[] = 'Invalid email or password.';
