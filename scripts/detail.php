@@ -31,9 +31,10 @@ try {
         }
         $userID = $_SESSION['Users_ID'];
 
-        $savestmt = $pdo->prepare("UPDATE Insurance SET Users_ID = :userID WHERE Insurance_ID = :insuranceId");
+        $savestmt = $pdo->prepare("UPDATE Insurance SET Users_ID = :userID, Price = :price WHERE Insurance_ID = :insuranceId");
         $savestmt->execute([
             'userID' => $userID,
+            'price' => $_SESSION['calculated_price'],
             'insuranceId' => $insuranceId
         ]);
 
