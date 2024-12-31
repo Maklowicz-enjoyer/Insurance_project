@@ -22,6 +22,7 @@
       <!-- PHP: Display errors -->
       <?php
       require 'db_connect.php'; // Ensure this file correctly connects to the database
+      session_start();
       $errors = [];
       
 
@@ -49,19 +50,15 @@
           // If no validation errors, check the database
           if (empty($errors)) {
               try {
-                  $query = "SELECT haslo FROM User WHERE email = :email";
+                  $query = "SELECT Users_ID, haslo FROM User WHERE email = :email";
                   $stmt = $pdo->prepare($query);
                   $stmt->execute(['email' => $email]);
                   $user = $stmt->fetch(PDO::FETCH_ASSOC);
                   
                   if ($user && password_verify($password, $user['haslo'])) {
-                    //Zapisywanie ID usera do sesji
-                    $query = "SELECT Users_ID FROM User WHERE email = :email";
-                    $stmt = $pdo->prepare($query);
-                    $stmt->execute(['email' => $email]);
-                    $userData = $stmt->fetch(PDO::FETCH_ASSOC);
+                  
 
-                    session_start();
+                    
                     $_SESSION['Users_ID'] = $userData['Users_ID'];
                     // Login successful: Redirect to main.html
                     header("Location: ../html/main.html");

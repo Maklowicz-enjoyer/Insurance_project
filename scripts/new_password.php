@@ -1,6 +1,11 @@
 <?php
 require 'db_connect.php';
-
+session_start();
+if (!isset($_SESSION['userID']) || empty($_SESSION['userID'])) {
+    $_SESSION['error'] = 'Sesja wygasła lub użytkownik nie został rozpoznany.';
+    header('Location: password_retrieval.php'); // Przekierowanie do odzyskiwania hasła
+    exit();
+}
 // Check if the form is submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Initialize error messages
@@ -10,6 +15,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = trim($_POST['password'] ?? '');
     $confirmPassword = trim($_POST['confirm_password'] ?? '');
 
+    if (empty($_SESSION['userID'])) {
+        die('User ID in session is missing or invalid.');
+    }
+    
 
     // Validate password
     if (empty($password)) {
@@ -33,11 +42,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try{
             $new_password = $_POST['password'];
 
+           
             // Haszujemy nowe hasło
             $hashed_password = password_hash($new_password, PASSWORD_BCRYPT);
         
             // Aktualizujemy hasło w bazie danych
-            $stmt = $pdo->prepare("UPDATE User SET haslo = :haslo WHERE Users_ID = :id");
+            $query = "UPDATE User SET haslo = :haslo WHERE Users_ID = :id";
+            $stmt = $pdo->prepare($query);
             $stmt->execute([
                 ':haslo' => $hashed_password,
                 ':id' => $_SESSION['userID']
@@ -50,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['success'] = 'Hasło zostało pomyślnie zmienione!';
             header('Location: login.php');
             exit();
-            
+
         } catch (PDOException $e) {
             // Handle query-related errors
             $errors[] = 'Database error: ' . $e->getMessage();

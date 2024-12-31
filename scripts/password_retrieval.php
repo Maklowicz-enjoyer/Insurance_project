@@ -3,6 +3,7 @@ require 'db_connect.php';
 
 session_start();
 
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Pobieramy email i kod odzyskiwania z formularza
     $email = trim($_POST['email']);
