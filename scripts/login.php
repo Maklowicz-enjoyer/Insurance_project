@@ -59,7 +59,7 @@
                   
 
                     
-                    $_SESSION['Users_ID'] = $userData['Users_ID'];
+                    $_SESSION['Users_ID'] = $user['Users_ID'];
                     // Login successful: Redirect to main.html
                     header("Location: ../html/main.html");
                     exit;
@@ -73,7 +73,7 @@
           }
         } elseif ($action === 'forgot_pass'){
           header('Location: password_retrieval.php');
-          exit();
+          
         }
       }
     }

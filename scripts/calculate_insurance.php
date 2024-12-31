@@ -119,7 +119,7 @@ $_SESSION['offers'] = $results;
 //Przekierowanie na strone
 header('Location: list.php');
 
-exit;
+
 } catch(PDOException $e){
     var_dump($e->getMessage());
     // Handle connection errors

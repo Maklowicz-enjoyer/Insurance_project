@@ -44,7 +44,7 @@ try {
   <header class="header">
     <div class="header-container">
       <h1 class="logo"><span class="part1">SKAN</span>POLIS</h1>
-      <a href="main.html" class="btn back">POWRÓT</a>
+      <a href="../html/main.html" class="btn back">POWRÓT</a>
     </div>
   </header>
 
