@@ -65,8 +65,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'kod' => $kod
                 ]);
 
-                // Redirect to main.html
-                header("Location: ../html/main.html");
+                // Redirect to login.php
+                header("Location: login.php");
                 exit;
             }
         } catch (PDOException $e) {

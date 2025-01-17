@@ -2,7 +2,7 @@
 <?php
 // Include database configuration
 include('db_connect.php');
-
+$sesja = $_SESSION['User_ID'];
 // Check if the delete request is submitted
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['action']) && $_POST['action'] === 'delete') {
     $insurance_id = $_POST['insurance_id'];
