@@ -13,7 +13,7 @@ body {
 
 
 .header {
-    background: linear-gradient(to right, #ccff66, #8DC26F);
+    background: linear-gradient(135deg, #00897b, #26a69a);
     display: flex;
     justify-content: space-between; 
     align-items: center;
@@ -39,7 +39,7 @@ body {
 }
 
 .logo .part1 {
-    color: #007e00; 
+    color: #e0f7f4; 
 }
 
 .header-buttons {
@@ -49,7 +49,7 @@ body {
 }
 
 .btn {
-    background-color: green;
+    background: linear-gradient(135deg, #00897b, #26a69a);
     color: white;
     padding: 8px 16px;
     text-decoration: none;
@@ -58,7 +58,7 @@ body {
 }
 
 .btn:hover {
-    background-color: darkgreen;
+    background: linear-gradient(135deg, #00796b, #00897b);
 }
 
 
@@ -91,7 +91,7 @@ main {
 
 .menu-item {
     text-decoration: none;
-    color: #007e00;
+    color: #e0f7f4;
     font-weight: bold;
 }
 
@@ -133,7 +133,7 @@ main {
 }
 
 .btn.green {
-    background-color: green;
+    background: linear-gradient(135deg, #00897b, #26a69a);
     color: #fff;
 }
 

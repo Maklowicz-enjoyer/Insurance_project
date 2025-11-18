@@ -17,7 +17,7 @@ body {
 
 
 .header {
-    background: linear-gradient(to right, #ccff66, #8DC26F);
+    background: linear-gradient(135deg, #00897b, #26a69a);
     color: white;
     padding: 20px;
     text-align: center;
@@ -47,11 +47,11 @@ body {
 }
 
 .logo .part1 {
-    color: #007e00; 
+    color: #e0f7f4; 
 }
 
 .btn {
-	background-color: green;
+	background: linear-gradient(135deg, #00897b, #26a69a);
 	color: white;
 	border: none;
 	padding: 8px 16px;
@@ -62,7 +62,7 @@ body {
 }
 
 .btn:hover {
-	background-color: darkgreen;
+	background: linear-gradient(135deg, #00796b, #00897b);
 }
 
 
@@ -121,7 +121,7 @@ input:focus {
 .register-btn,
 .reset-btn {
 	width: 300px;
-	background-color: green;
+	background: linear-gradient(135deg, #00897b, #26a69a);
 	color: white;
 	padding: 10px;
 	border: none;
@@ -132,7 +132,7 @@ input:focus {
 
 .register-btn:hover,
 .reset-btn:hover {
-	background-color: darkgreen;
+	background: linear-gradient(135deg, #00796b, #00897b);
 }
 
 /* Footer */

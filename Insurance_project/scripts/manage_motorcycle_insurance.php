@@ -15,6 +15,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $use_type = $_POST['use_type'] ?? '';
     $typ_ubezpieczenia = $_POST['typ_ubezpieczenia'] ?? '';
     $power_hp = $_POST['power_hp'] ?? '';
+    $motorcycle_type = $_POST['motorcycle_type'] ?? '';
 
     // Zapisz parametry wyszukiwania do wyświetlenia
     $search_params = [
@@ -23,7 +24,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         'engine_capacity' => $engine_capacity,
         'power_hp' => $power_hp,
         'typ_ubezpieczenia' => $typ_ubezpieczenia,
-        'use_type' => $use_type
+        'use_type' => $use_type,
+        'motorcycle_type' => $motorcycle_type
     ];
 
     try {
@@ -52,6 +54,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         if (!empty($power_hp)) {
             $query .= " AND Power_HP <= :power_hp";
             $params[':power_hp'] = $power_hp;
+        }
+
+        // Filtruj po typie motocykla (opcjonalne)
+        if (!empty($motorcycle_type)) {
+            $query .= " AND Motorcycle_type = :motorcycle_type";
+            $params[':motorcycle_type'] = $motorcycle_type;
         }
 
         // Sortuj po cenie
@@ -103,6 +111,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <?php if (!empty($search_params['power_hp'])): ?>
             <p><strong>Moc:</strong> <?php echo htmlspecialchars($search_params['power_hp']); ?> KM</p>
             <?php endif; ?>
+            <?php if (!empty($search_params['motorcycle_type'])): ?>
+            <p><strong>Typ motocykla:</strong> <?php echo htmlspecialchars(ucfirst($search_params['motorcycle_type'])); ?></p>
+            <?php endif; ?>
             <p><strong>Typ ubezpieczenia:</strong> <?php echo htmlspecialchars($search_params['typ_ubezpieczenia'] ?? 'Dowolny'); ?></p>
             <p><strong>Typ użytkowania:</strong> <?php echo htmlspecialchars($search_params['use_type'] ?? 'Dowolny'); ?></p>
         </div>
@@ -121,6 +132,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         <h3 class="company-name"><?php echo htmlspecialchars($insurance['Insurance_name']); ?></h3>
                         <div class="offer-info">
                             <p><strong>Typ:</strong> <?php echo htmlspecialchars($insurance['Insurance_type']); ?></p>
+                            <?php if (!empty($insurance['Motorcycle_type'])): ?>
+                            <p><strong>Kategoria:</strong> <?php echo htmlspecialchars(ucfirst($insurance['Motorcycle_type'])); ?></p>
+                            <?php endif; ?>
                             <p><strong>Pojemność:</strong> <?php echo htmlspecialchars($insurance['Engine_capacity']); ?> cm³</p>
                             <?php if (!empty($insurance['Power_HP'])): ?>
                             <p><strong>Moc:</strong> <?php echo htmlspecialchars($insurance['Power_HP']); ?> KM</p>

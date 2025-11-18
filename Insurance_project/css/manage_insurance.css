@@ -14,7 +14,7 @@ html, body {
 
 /* Header */
 .header {
-    background: linear-gradient(to right, #ccff66, #8DC26F);
+    background: linear-gradient(135deg, #00897b, #26a69a);
     color: white;
     padding: 20px;
     width: 100%;
@@ -44,12 +44,12 @@ html, body {
 }
 
 .logo .part1 {
-    color: #007e00;
+    color: #e0f7f4;
 }
 
 .header-buttons .btn {
     margin-left: 10px;
-    background-color: green;
+    background: linear-gradient(135deg, #00897b, #26a69a);
     color: white;
     border: none;
     padding: 8px 16px;
@@ -59,7 +59,7 @@ html, body {
 }
 
 .header-buttons .btn:hover {
-    background-color: darkgreen;
+    background: linear-gradient(135deg, #00796b, #00897b);
 }
 
 /* Main Content */
@@ -133,7 +133,7 @@ input:focus, select:focus {
 }
 
 button {
-    background-color: green;
+    background: linear-gradient(135deg, #00897b, #26a69a);
     color: white;
     border: none;
     cursor: pointer;
@@ -142,7 +142,7 @@ button {
 }
 
 button:hover {
-    background-color: darkgreen;
+    background: linear-gradient(135deg, #00796b, #00897b);
 }
 
 /* Offer Cards */
@@ -175,7 +175,7 @@ button:hover {
 
 .offer .choose-btn {
     display: inline-block;
-    background-color: #007e00;
+    background-color: #e0f7f4;
     color: white;
     text-align: center;
     padding: 10px 20px;

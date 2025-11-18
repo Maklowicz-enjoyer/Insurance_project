@@ -125,6 +125,7 @@ CREATE TABLE IF NOT EXISTS `MotorcycleInsurance` (
   `Last_accident` TINYINT(1) DEFAULT NULL,
   `Date_of_last_collision` DATE DEFAULT NULL,
   `Engine_capacity` INT NOT NULL,          -- OBOWIĄZKOWE dla motocykli
+  `Motorcycle_type` VARCHAR(20) DEFAULT NULL,  -- naked, cruiser, bobber, cross, etc.
   `Power_HP` INT DEFAULT NULL,
   `Price` DECIMAL(10,2) NOT NULL DEFAULT 0,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -191,10 +192,36 @@ INSERT INTO `CarInsurance` (`Users_ID`, `Vehicle_ID`, `Insurance_name`, `Insuran
 (2, 1, 'Allianz', 'OC', 'PRYWATNIE', '2025-12-31', 'Sedan', 420.00, 15000);
 
 -- Sample motorcycle insurance offers
-INSERT INTO `MotorcycleInsurance` (`Users_ID`, `Vehicle_ID`, `Insurance_name`, `Insurance_type`, `Use_type`, `License_release_date`, `Engine_capacity`, `Power_HP`, `Price`) VALUES
-(2, 2, 'PZU', 'OC', 'PRYWATNIE', '2025-12-31', 689, 75, 350.00),
-(2, 2, 'Warta', 'OC/AC', 'PRYWATNIE', '2025-12-31', 689, 75, 890.00),
-(2, 2, 'Allianz', 'OC', 'PRYWATNIE', '2025-12-31', 689, 75, 320.00);
+INSERT INTO `MotorcycleInsurance` (`Users_ID`, `Vehicle_ID`, `Insurance_name`, `Insurance_type`, `Use_type`, `License_release_date`, `Engine_capacity`, `Motorcycle_type`, `Power_HP`, `Price`) VALUES
+-- 125cc - dla początkujących
+(2, 2, 'PZU', 'OC', 'PRYWATNIE', '2025-12-31', 125, 'naked', 15, 280.00),
+(2, 2, 'Warta', 'OC', 'PRYWATNIE', '2025-12-31', 125, 'cross', 15, 320.00),
+(2, 2, 'Allianz', 'OC/AC', 'PRYWATNIE', '2025-12-31', 125, 'naked', 15, 650.00),
+
+-- 300cc
+(2, 2, 'Link4', 'OC', 'PRYWATNIE', '2025-12-31', 300, 'naked', 39, 420.00),
+(2, 2, 'Ergo Hestia', 'OC', 'PRYWATNIE', '2025-12-31', 300, 'cruiser', 35, 450.00),
+(2, 2, 'PZU', 'OC/AC', 'PRYWATNIE', '2025-12-31', 300, 'naked', 39, 920.00),
+
+-- 600cc - sportowe
+(2, 2, 'Allianz', 'OC', 'PRYWATNIE', '2025-12-31', 600, 'naked', 95, 680.00),
+(2, 2, 'PZU', 'OC', 'PRYWATNIE', '2025-12-31', 600, 'cruiser', 50, 620.00),
+(2, 2, 'Generali', 'OC/AC', 'PRYWATNIE', '2025-12-31', 600, 'naked', 95, 1450.00),
+
+-- 900cc
+(2, 2, 'PZU', 'OC', 'PRYWATNIE', '2025-12-31', 900, 'naked', 115, 890.00),
+(2, 2, 'Ergo Hestia', 'OC', 'PRYWATNIE', '2025-12-31', 900, 'cruiser', 75, 850.00),
+(2, 2, 'Allianz', 'OC/AC', 'PRYWATNIE', '2025-12-31', 900, 'naked', 115, 1850.00),
+
+-- 1200cc
+(2, 2, 'PZU', 'OC', 'PRYWATNIE', '2025-12-31', 1200, 'cruiser', 100, 1250.00),
+(2, 2, 'Generali', 'OC', 'PRYWATNIE', '2025-12-31', 1200, 'bobber', 105, 1280.00),
+(2, 2, 'Allianz', 'OC/AC', 'PRYWATNIE', '2025-12-31', 1200, 'cruiser', 100, 2450.00),
+
+-- 1500cc - największe
+(2, 2, 'PZU', 'OC', 'PRYWATNIE', '2025-12-31', 1500, 'cruiser', 130, 1580.00),
+(2, 2, 'Warta', 'OC', 'PRYWATNIE', '2025-12-31', 1500, 'bobber', 135, 1620.00),
+(2, 2, 'Link4', 'OC/AC', 'PRYWATNIE', '2025-12-31', 1500, 'cruiser', 130, 3050.00);
 
 -- ============================================
 -- CREATE Insurance VIEW (UNION of CarInsurance and MotorcycleInsurance)

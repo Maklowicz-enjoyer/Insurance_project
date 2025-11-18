@@ -111,6 +111,18 @@
           <input type="number" id="power" name="power_hp" min="5" max="300" placeholder="np. 75">
         </div>
 
+        <!-- POLE TYLKO DLA MOTOCYKLI - TYP MOTOCYKLA -->
+        <div class="field-group motorcycle-only" style="display:none;">
+          <label for="motorcycle-type">Typ motocykla</label>
+          <select id="motorcycle-type" name="motorcycle_type">
+            <option value="">Dowolny</option>
+            <option value="naked">Naked</option>
+            <option value="cruiser">Cruiser</option>
+            <option value="bobber">Bobber</option>
+            <option value="cross">Cross</option>
+          </select>
+        </div>
+
         <div class="field-group car-only">
           <label for="damage">Lata od ostatniej szkody</label>
           <input type="number" id="damage" name="damage" min="0" max="20">

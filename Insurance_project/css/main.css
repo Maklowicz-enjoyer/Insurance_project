@@ -14,7 +14,7 @@
   
   
   .header {
-    background: linear-gradient(to right, #ccff66, #8DC26F); 
+    background: linear-gradient(135deg, #00897b, #26a69a);
     width: 100%;
     padding: 10px 20px;
     display: flex;
@@ -35,11 +35,11 @@
   .logo {
     font-size: 32px;
     font-weight: bold;
-    color: black;
+    color: white;
   }
-  
+
   .logo .part1 {
-    color: #007e00;
+    color: #e0f7f4;
   }
   
   .header-buttons {
@@ -55,18 +55,21 @@
   }
   
   .btn {
-    background-color: green;
+    background: linear-gradient(135deg, #004d40, #00796b);
     color: white;
     border: none;
     padding: 8px 16px;
     text-decoration: none;
-    border-radius: 4px;
+    border-radius: 6px;
     font-weight: bold;
     cursor: pointer;
+    transition: all 0.3s ease;
   }
-  
+
   .btn:hover {
-    background-color: darkgreen;
+    background: linear-gradient(135deg, #00251a, #004d40);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 137, 123, 0.3);
   }
   
   
