@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkanPolis - Znajdź Ubezpieczenie</title>
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-container">
+      <h1 class="logo"><span class="part1">SKAN</span>POLIS</h1>
+      <div class="header-buttons">
+        <a href="../index.html" class="btn back">POWRÓT</a>
+        <a href="account.html" class="btn acc">MOJE KONTO</a>
+        <a href="../index.html" class="btn logout">WYLOGUJ SIĘ</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <h2 class="title">FORMULARZ WYSZUKIWANIA UBEZPIECZENIA</h2>
+
+    <!-- Container z przełącznikiem i formularzem -->
+    <div class="form-container">
+
+      <!-- Przełącznik Samochody/Motocykle -->
+      <div class="vehicle-type-switch">
+        <button type="button" class="switch-btn active" data-type="car">
+          🚗 SAMOCHODY
+        </button>
+        <button type="button" class="switch-btn" data-type="motorcycle">
+          🏍️ MOTOCYKLE
+        </button>
+      </div>
+
+      <!-- JEDEN FORMULARZ z dynamicznymi polami -->
+      <form id="insurance-form" action="../scripts/manage_insurance.php" method="POST" class="insurance-form">
+        <input type="hidden" id="vehicle_type" name="vehicle_type" value="CAR">
+
+        <!-- Wspólne pola dla obu typów -->
+        <div class="field-group">
+          <label for="dob">Data urodzenia kierowcy</label>
+          <input type="date" id="dob" name="dob">
+        </div>
+
+        <div class="field-group">
+          <label for="insurance-date">Data rozpoczęcia ubezpieczenia</label>
+          <input type="date" id="insurance-date" name="insurance_date">
+        </div>
+
+        <div class="field-group">
+          <label for="brand" id="brand-label">Marka pojazdu</label>
+          <input type="text" id="brand" name="brand">
+        </div>
+
+        <div class="field-group">
+          <label for="insurance-type">Typ ubezpieczenia</label>
+          <select id="insurance-type" name="typ_ubezpieczenia">
+            <option value="">Wybierz...</option>
+            <option value="OC">OC</option>
+            <option value="OC/AC">OC/AC</option>
+          </select>
+        </div>
+
+        <!-- POLA TYLKO DLA SAMOCHODÓW -->
+        <div class="field-group car-only">
+          <label for="typ_nadwozia">Typ Nadwozia</label>
+          <select id="typ_nadwozia" name="typ_nadwozia">
+            <option value="" disabled selected>Wybierz typ nadwozia</option>
+            <option value="Sedan">Sedan</option>
+            <option value="SUV">SUV</option>
+            <option value="Kombi">Kombi</option>
+            <option value="Hatchback">Hatchback</option>
+            <option value="Kompakt">Kompakt</option>
+            <option value="Coupe">Coupe</option>
+            <option value="Kabriolet">Kabriolet</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label for="usage">Typ użytkowania</label>
+          <select id="usage" name="use_type">
+            <option value="">Wybierz...</option>
+            <option value="LEASING">LEASING</option>
+            <option value="PRYWATNIE">PRYWATNIE</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label for="year">Rok produkcji</label>
+          <input type="number" id="year" name="year" min="1990" max="2025">
+        </div>
+
+        <div class="field-group">
+          <label for="license-date">Data wydania prawa jazdy</label>
+          <input type="date" id="license-date" name="license_date">
+        </div>
+
+        <!-- POLE POJEMNOŚĆ - wspólne ale z inną logiką -->
+        <div class="field-group">
+          <label for="capacity" id="capacity-label">Pojemność silnika (cm³)</label>
+          <input type="number" id="capacity" name="capacity" min="500" max="8000">
+          <small id="capacity-hint" class="motorcycle-only" style="display:none;">Pole obowiązkowe dla motocykli</small>
+        </div>
+
+        <!-- POLE TYLKO DLA MOTOCYKLI - MOC -->
+        <div class="field-group motorcycle-only" style="display:none;">
+          <label for="power">Moc silnika (KM)</label>
+          <input type="number" id="power" name="power_hp" min="5" max="300" placeholder="np. 75">
+        </div>
+
+        <div class="field-group car-only">
+          <label for="damage">Lata od ostatniej szkody</label>
+          <input type="number" id="damage" name="damage" min="0" max="20">
+        </div>
+
+        <!-- POLA TYLKO DLA SAMOCHODÓW -->
+        <div class="field-group car-only">
+          <label for="fuel">Rodzaj paliwa</label>
+          <select id="fuel" name="fuel">
+            <option value="">Wybierz...</option>
+            <option value="BENZYNA">BENZYNA</option>
+            <option value="ROPA">ROPA</option>
+            <option value="BENZYNA+LPG">BENZYNA+LPG</option>
+            <option value="HYBRYDA">HYBRYDA</option>
+            <option value="PRĄD">PRĄD</option>
+          </select>
+        </div>
+
+        <div class="field-group motorcycle-only" style="display:none;">
+          <label for="moto-damage">Lata od ostatniej szkody</label>
+          <input type="number" id="moto-damage" name="damage" min="0" max="20">
+        </div>
+
+        <div class="field-group car-only">
+          <label for="mileage">Planowany kilometraż roczny (tys. km)</label>
+          <select id="mileage" name="mileage">
+            <option value="">Wybierz...</option>
+            <option value="0-2">0-2</option>
+            <option value="2-5">2-5</option>
+            <option value="5-10">5-10</option>
+            <option value="10-20">10-20</option>
+            <option value="20 i więcej">20 i więcej</option>
+          </select>
+        </div>
+
+        <!-- Placeholder dla wyrównania grida -->
+        <div class="field-group placeholder motorcycle-only" style="display:none;"></div>
+
+        <button type="submit" class="search-btn">SZUKAJ POLISY</button>
+      </form>
+
+    </div>
+
+    <h2 class="main-heading">Dobrze, że wybrałeś(aś) kalkulator OC i AC SKANPOLIS</h2>
+
+    <p class="info-text">
+      Kalkulator OC i AC SKANPOLIS prezentuje wyłącznie aktualne oferty OC i OC+AC.
+      Oferty ubezpieczeń dostępne w kalkulatorze OC AC są ofertami firm ubezpieczeniowych, a ich ceny są wyliczane przez towarzystwa na podstawie danych wprowadzonych w formularzu przez użytkownika serwisu.
+    </p>
+
+  </main>
+
+  <footer class="footer">
+    <p>© 2024 Skanpolis. Wszelkie prawa zastrzeżone.</p>
+  </footer>
+
+  <script>
+    // Przełączanie między typami pojazdów
+    const switchButtons = document.querySelectorAll('.switch-btn');
+    const form = document.getElementById('insurance-form');
+    const vehicleTypeInput = document.getElementById('vehicle_type');
+    const brandLabel = document.getElementById('brand-label');
+    const capacityLabel = document.getElementById('capacity-label');
+    const capacityInput = document.getElementById('capacity');
+    const capacityHint = document.getElementById('capacity-hint');
+
+    switchButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const vehicleType = this.getAttribute('data-type');
+
+        // Zmień aktywny przycisk
+        switchButtons.forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+
+        if (vehicleType === 'car') {
+          // Przełącz na samochody
+          vehicleTypeInput.value = 'CAR';
+          form.action = '../scripts/manage_insurance.php';
+          brandLabel.textContent = 'Marka pojazdu';
+          capacityLabel.textContent = 'Pojemność silnika (cm³)';
+          capacityInput.name = 'capacity';
+          capacityInput.min = '500';
+          capacityInput.max = '8000';
+          capacityInput.removeAttribute('required');
+          capacityHint.style.display = 'none';
+
+          // Pokaż pola dla samochodów
+          document.querySelectorAll('.car-only').forEach(el => {
+            el.style.display = 'flex';
+          });
+
+          // Ukryj pola dla motocykli
+          document.querySelectorAll('.motorcycle-only').forEach(el => {
+            el.style.display = 'none';
+          });
+
+        } else {
+          // Przełącz na motocykle
+          vehicleTypeInput.value = 'MOTORCYCLE';
+          form.action = '../scripts/manage_motorcycle_insurance.php';
+          brandLabel.textContent = 'Marka motocykla';
+          capacityLabel.innerHTML = 'Pojemność silnika (cm³) <span style="color:red;">*</span>';
+          capacityInput.name = 'engine_capacity';
+          capacityInput.min = '50';
+          capacityInput.max = '2500';
+          capacityInput.setAttribute('required', 'required');
+          capacityHint.style.display = 'block';
+
+          // Ukryj pola dla samochodów
+          document.querySelectorAll('.car-only').forEach(el => {
+            el.style.display = 'none';
+          });
+
+          // Pokaż pola dla motocykli
+          document.querySelectorAll('.motorcycle-only').forEach(el => {
+            el.style.display = 'flex';
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

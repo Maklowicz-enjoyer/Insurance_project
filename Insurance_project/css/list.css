@@ -1,0 +1,167 @@
+ 
+ * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  html, body {
+    height: 100%;
+    font-family: Arial, sans-serif;
+    color: #000;
+    background-color: #fff;
+  }
+  
+  
+  .header {
+    background: linear-gradient(to right, #ccff66, #8DC26F); 
+    width: 100%;
+    padding: 10px 20px;
+    display: flex;
+    position: fixed;
+    top: 0;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+  
+  .logo {
+    font-size: 32px;
+    font-weight: bold;
+    color: black;
+  }
+  
+  .logo .part1 {
+    color: #007e00; 
+  }
+  
+  .header-buttons {
+    display: flex;
+    align-items: center;
+    gap: 12px; 
+  }
+  
+  .account {
+    font-size: 16px;
+    font-weight: bold;
+    color: black;
+  }
+  
+  .btn {
+    background-color: green;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  .btn:hover {
+    background-color: darkgreen;
+  }
+
+  
+.vehicle-info {
+    background-color: #e6ffe6;
+    border: 2px solid #99cc99;
+    padding: 20px;
+    margin: 80px auto;
+    border-radius: 5px;
+    max-width: 800px;
+    text-align: center;
+    font-size: 16px;
+  }
+  
+  .vehicle-details p {
+    margin: 8px 0;
+  }
+  
+  
+  .offers {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  
+  .offer {
+    background-color: #f4fff4;
+    border: 2px solid #99cc99;
+    border-radius: 5px;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .offer.recommended {
+    border: 2px solid #66cc66;
+  }
+  
+  .offer-header .badge {
+    background-color: #66cc66;
+    color: #fff;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 3px;
+  }
+  
+  .offer-details .company-name {
+    font-size: 20px;
+    font-weight: bold;
+    color: #007e00;
+  }
+  
+  .offer-info p {
+    font-size: 16px;
+    margin: 15px 0;
+  }
+  
+  
+  .btn.choose-btn,
+  .btn.update-btn {
+    background-color: #66cc66;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  
+  .btn.choose-btn:hover,
+  .btn.update-btn:hover {
+    background-color: #4da64d;
+  }
+  main {
+    margin-top: 80px; 
+    padding: 40px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding-top: 80px;
+}
+  .footer {
+    background-color: #f2f2f2;
+    text-align: center;
+    color: #000;
+    padding: 10px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    font-size: 14px;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+}

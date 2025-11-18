@@ -1,0 +1,141 @@
+version: '3.8'
+
+services:
+  # ========================================
+  # NGINX Web Server
+  # ========================================
+  nginx:
+    build:
+      context: ./docker/nginx
+      dockerfile: Dockerfile
+    container_name: skanpolis_nginx
+    ports:
+      - "8080:80"
+      - "8443:443"
+    volumes:
+      - ./Insurance_project:/var/www/html:ro
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      - php
+    networks:
+      - skanpolis_network
+    restart: unless-stopped
+
+  # ========================================
+  # PHP-FPM Application Server
+  # ========================================
+  php:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+    container_name: skanpolis_php
+    volumes:
+      - ./Insurance_project:/var/www/html
+      - ./docker/php/php.ini:/usr/local/etc/php/php.ini:ro
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_NAME=${DB_NAME:-insurance_db}
+      - DB_USER=${DB_USER:-insurance_user}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - SESSION_SECRET=${SESSION_SECRET}
+      - APP_ENV=${APP_ENV:-development}
+      - APP_DEBUG=${APP_DEBUG:-true}
+    secrets:
+      - db_password
+      - session_secret
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - skanpolis_network
+    restart: unless-stopped
+
+  # ========================================
+  # MySQL Database
+  # ========================================
+  mysql:
+    image: mysql:8.0
+    container_name: skanpolis_mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME:-insurance_db}
+      - MYSQL_USER=${DB_USER:-insurance_user}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf:ro
+    secrets:
+      - db_password
+    networks:
+      - skanpolis_network
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
+
+  # ========================================
+  # Redis Session Store
+  # ========================================
+  redis:
+    image: redis:7-alpine
+    container_name: skanpolis_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - skanpolis_network
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+
+  # ========================================
+  # PhpMyAdmin (Development Only)
+  # ========================================
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: skanpolis_phpmyadmin
+    ports:
+      - "8081:80"
+    environment:
+      - PMA_HOST=mysql
+      - PMA_PORT=3306
+      - PMA_USER=${DB_USER:-insurance_user}
+      - PMA_PASSWORD=${DB_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    depends_on:
+      - mysql
+    networks:
+      - skanpolis_network
+    restart: unless-stopped
+    profiles:
+      - dev
+
+# ========================================
+# Docker Secrets (for production use)
+# ========================================
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+  session_secret:
+    file: ./secrets/session_secret.txt
+
+# ========================================
+# Persistent Volumes
+# ========================================
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+
+# ========================================
+# Network Configuration
+# ========================================
+networks:
+  skanpolis_network:
+    driver: bridge

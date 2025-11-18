@@ -1,0 +1,109 @@
+-- ============================================
+-- 1. Tabela pojazdów użytkownika
+-- ============================================
+
+CREATE TABLE `Vehicle` (
+  `Vehicle_ID` INT NOT NULL AUTO_INCREMENT,
+  `Users_ID` INT NOT NULL,
+  `Vehicle_type` ENUM('CAR','MOTORCYCLE') NOT NULL,
+  `Brand` VARCHAR(50) NOT NULL,
+  `Model` VARCHAR(50) NOT NULL,
+  `Year` INT NOT NULL,
+  `Engine_capacity` INT DEFAULT NULL,        -- dla motocykli (cm³)
+  `Power_HP` INT DEFAULT NULL,
+  `VIN` VARCHAR(50) DEFAULT NULL,
+  PRIMARY KEY (`Vehicle_ID`),
+  KEY `Users_ID` (`Users_ID`),
+  CONSTRAINT `Vehicle_User_FK`
+      FOREIGN KEY (`Users_ID`)
+      REFERENCES `User` (`Users_ID`)
+      ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- ============================================
+-- 2. Tabela historii wyszukiwań
+-- ============================================
+
+CREATE TABLE `SearchHistory` (
+  `Search_ID` INT NOT NULL AUTO_INCREMENT,
+  `Users_ID` INT NOT NULL,
+  `Vehicle_ID` INT DEFAULT NULL,
+  `Insurance_type` VARCHAR(20) NOT NULL,   -- np. OC, AC, OC/AC
+  `Use_type` VARCHAR(20) NOT NULL,         -- leasing / prywatnie
+  `Date_of_search` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `Planned_mileage` INT DEFAULT NULL,
+  `Last_accident` TINYINT(1) DEFAULT NULL,
+  PRIMARY KEY (`Search_ID`),
+  KEY `Users_ID` (`Users_ID`),
+  KEY `Vehicle_ID` (`Vehicle_ID`),
+  CONSTRAINT `SearchHistory_User_FK`
+      FOREIGN KEY (`Users_ID`)
+      REFERENCES `User` (`Users_ID`)
+      ON DELETE CASCADE,
+  CONSTRAINT `SearchHistory_Vehicle_FK`
+      FOREIGN KEY (`Vehicle_ID`)
+      REFERENCES `Vehicle` (`Vehicle_ID`)
+      ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ========================================
+-- POLISA DLA SAMOCHODU
+-- ========================================
+
+CREATE TABLE `CarInsurance` (
+  `CarInsurance_ID` INT NOT NULL AUTO_INCREMENT,
+  `Users_ID` INT NOT NULL,
+  `Vehicle_ID` INT NOT NULL,
+  `Insurance_name` VARCHAR(50) NOT NULL,
+  `Insurance_type` VARCHAR(20) NOT NULL,   -- OC / AC / OC+AC
+  `Use_type` VARCHAR(20) NOT NULL,         -- LEASING / PRYWATNIE
+  `License_release_date` DATE NOT NULL,
+  `Last_accident` TINYINT(1) DEFAULT NULL,
+  `Date_of_last_collision` DATE DEFAULT NULL,
+  `Planned_mileage` INT DEFAULT NULL,
+  `Body_type` VARCHAR(50) NOT NULL,        -- Sedan, SUV, Coupe itd.
+  `Price` DECIMAL(10,2) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`CarInsurance_ID`),
+
+  CONSTRAINT `CarInsurance_User_FK`
+      FOREIGN KEY (`Users_ID`)
+      REFERENCES `User` (`Users_ID`)
+      ON DELETE CASCADE,
+
+  CONSTRAINT `CarInsurance_Vehicle_FK`
+      FOREIGN KEY (`Vehicle_ID`)
+      REFERENCES `Vehicle` (`Vehicle_ID`)
+      ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+
+-- ========================================
+-- POLISA DLA MOTOCYKLA
+-- ========================================
+
+CREATE TABLE `MotorcycleInsurance` (
+  `MotorcycleInsurance_ID` INT NOT NULL AUTO_INCREMENT,
+  `Users_ID` INT NOT NULL,
+  `Vehicle_ID` INT NOT NULL,
+  `Insurance_name` VARCHAR(50) NOT NULL,
+  `Insurance_type` VARCHAR(20) NOT NULL,
+  `Use_type` VARCHAR(20) NOT NULL,
+  `License_release_date` DATE NOT NULL,
+  `Last_accident` TINYINT(1) DEFAULT NULL,
+  `Date_of_last_collision` DATE DEFAULT NULL,
+  `Engine_capacity` INT NOT NULL,          -- OBOWIĄZKOWE dla motocykli
+  `Power_HP` INT DEFAULT NULL,
+  `Price` DECIMAL(10,2) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`MotorcycleInsurance_ID`),
+
+  CONSTRAINT `MotorcycleInsurance_User_FK`
+      FOREIGN KEY (`Users_ID`)
+      REFERENCES `User` (`Users_ID`)
+      ON DELETE CASCADE,
+
+  CONSTRAINT `MotorcycleInsurance_Vehicle_FK`
+      FOREIGN KEY (`Vehicle_ID`)
+      REFERENCES `Vehicle` (`Vehicle_ID`)
+      ON DELETE CASCADE
+) ENGINE=InnoDB

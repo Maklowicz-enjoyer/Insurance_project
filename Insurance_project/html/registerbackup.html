@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkanPolis Logowanie</title>
+  <link rel="stylesheet" href="../css/register.css">
+</head>
+<body>
+  
+  <header class="header">
+    <div class="header-container">
+        <a href="../index.html" class="btn back">POWRÓT</a>
+        <h1 class="logo"><span class="part1">SKAN</span>POLIS</h1>
+    </div>
+  </header>
+
+  
+  <main>
+    <div class="form-container">
+      <h2>Rejestracja</h2>
+      <form action="../scripts/register.php" method="post">
+        <label for="email">E-mail</label>
+        <input type="email" id="email" placeholder="Wpisz e-mail">
+
+        <label for="password">Hasło</label>
+        <input type="password" id="password" placeholder="Wpisz hasło">
+
+        <label for="confirm_password">Powtórz hasło</label>
+        <input type="password" id="confirm_password" placeholder="Ponownie wpisz hasło">
+
+        
+        <button type="submit" class="register-btn">ZAREJESTRUJ SIĘ</button>
+
+       
+      </form>
+    </div>
+  </main>
+  <footer class="footer">
+    <p>© 2024 Skanpolis. Wszelkie prawa zastrzeżone.</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,94 @@
+# ========================================
+# Environment & Secrets
+# ========================================
+.env
+.env.local
+.env.*.local
+secrets/
+*.key
+*.pem
+
+# ========================================
+# Dependencies
+# ========================================
+vendor/
+composer.lock
+node_modules/
+package-lock.json
+
+# ========================================
+# IDE & Editor Files
+# ========================================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ========================================
+# Logs
+# ========================================
+*.log
+logs/
+storage/logs/
+
+# ========================================
+# Docker
+# ========================================
+docker-compose.override.yml
+
+# ========================================
+# Database
+# ========================================
+*.sql.backup
+*.sqlite
+*.db
+
+# ========================================
+# Temporary Files
+# ========================================
+tmp/
+temp/
+cache/
+*.tmp
+*.bak
+*.cache
+
+# ========================================
+# Build Artifacts
+# ========================================
+dist/
+build/
+public/build/
+
+# ========================================
+# Testing
+# ========================================
+coverage/
+.phpunit.result.cache
+
+# ========================================
+# OS Generated Files
+# ========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
+
+# ========================================
+# Development Documentation (optional)
+# ========================================
+# Uncomment to exclude analysis files from git:
+# BCRYPT_EXPLAINED.md
+# CRITICAL_ANALYSIS.md
+# CURL_FIX.md
+# FINAL_STATUS.md
+# FIXES_SUMMARY.md
+# IMPLEMENTATION_SUMMARY.md
+# INFRASTRUCTURE_STATUS.md
+# QUICK_START.md
