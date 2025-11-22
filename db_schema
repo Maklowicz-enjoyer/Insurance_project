@@ -107,3 +107,23 @@ CREATE TABLE `MotorcycleInsurance` (
       REFERENCES `Vehicle` (`Vehicle_ID`)
       ON DELETE CASCADE
 ) ENGINE=InnoDB
+
+-- ============================================
+-- TABELA DLA ULUBIONYCH OFERT
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS `FavoriteInsurance` (
+  `Favorite_ID` INT NOT NULL AUTO_INCREMENT,
+  `Users_ID` INT NOT NULL,
+  `Insurance_ID` INT NOT NULL,
+  `Insurance_Type` ENUM('CAR', 'MOTORCYCLE') NOT NULL,
+  `Added_Date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `Notes` TEXT DEFAULT NULL,
+  PRIMARY KEY (`Favorite_ID`),
+  UNIQUE KEY `unique_favorite` (`Users_ID`, `Insurance_ID`, `Insurance_Type`),
+  KEY `idx_users_id` (`Users_ID`),
+  CONSTRAINT `FavoriteInsurance_User_FK`
+      FOREIGN KEY (`Users_ID`)
+      REFERENCES `User` (`Users_ID`)
+      ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

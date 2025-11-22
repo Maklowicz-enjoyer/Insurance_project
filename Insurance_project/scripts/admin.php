@@ -181,7 +181,7 @@ try {
     </main>
 
     <footer class="footer">
-        <p>© 2024 SkanPolis. Wszelkie prawa zastrzeżone.</p>
+        <p>© <?php echo date("Y"); ?> SkanPolis. Wszelkie prawa zastrzeżone.</p>
     </footer>
 </body>
 </html>

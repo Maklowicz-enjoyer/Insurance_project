@@ -122,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </main>
 
 <footer class="footer">
-    <p>© 2024 Skanpolis. Wszelkie prawa zastrzeżone.</p>
+    <p>© <?php echo date("Y"); ?> Skanpolis. Wszelkie prawa zastrzeżone.</p>
 </footer>
 </body>
 </html>
