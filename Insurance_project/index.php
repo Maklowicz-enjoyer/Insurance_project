@@ -1,0 +1,103 @@
+<?php
+/**
+ * Strona główna z automatycznym sprawdzeniem sesji
+ * Jeśli użytkownik ma aktywną sesję, przekierowuje na ostatni URL
+ */
+
+// Start session if not started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+require_once __DIR__ . '/scripts/session_helper.php';
+
+$sessionHelper = new SessionHelper();
+
+// Sprawdź czy użytkownik ma aktywną sesję
+$userData = $sessionHelper->getUserSession();
+
+if ($userData !== null) {
+    // Użytkownik jest zalogowany - przekieruj na ostatni URL
+    $lastUrl = $userData['last_url'] ?? null;
+
+    if ($lastUrl) {
+        // Przekieruj na ostatnio odwiedzoną stronę
+        header("Location: " . $lastUrl);
+        exit;
+    } else {
+        // Brak zapisanego URL - przekieruj na domyślną stronę
+        if ($userData['is_admin']) {
+            header("Location: /scripts/admin.php");
+        } else {
+            header("Location: /html/main.php");
+        }
+        exit;
+    }
+}
+
+// Użytkownik niezalogowany - pokaż stronę powitalną
+?>
+<!DOCTYPE html>
+<html lang="pl">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Ekran Startowy - Skanpolis</title>
+		<link rel="stylesheet" href="/css/start.css" />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
+			rel="stylesheet"
+		/>
+	</head>
+	<body>
+		<header class="header">
+			<div class="header-container">
+				<h1 class="logo"><span class="part1">SKAN</span>POLIS</h1>
+				<div class="phone">
+					<span class="phone-icon">📞</span>
+					<span class="phone-number">123 456 789</span>
+				</div>
+			</div>
+		</header>
+
+		<main>
+			<section class="welcome-text">
+				<p>Witamy w naszej wyszukiwarce ubezpieczeń</p>
+				<p>By wyszukać oferty zaloguj się lub zarejestruj</p>
+			</section>
+			<div class="button-container">
+				<a href="/scripts/login.php" class="button">LOGOWANIE</a>
+				<a href="/scripts/register.php" class="button">REJESTRACJA</a>
+			</div>
+			<section class="features">
+				<h2 class="features-title">Dlaczego warto wybrać SkanPolis?</h2>
+				<div class="features-container">
+					<div class="feature">
+						<div class="feature-icon">📋</div>
+						<h3>Szybkie kalkulacje</h3>
+						<p>Obliczenie składek OC/AC zajmie Ci tylko kilka minut.</p>
+					</div>
+					<div class="feature">
+						<div class="feature-icon">💰</div>
+						<h3>Najlepsze ceny</h3>
+						<p>
+							Porównujemy oferty wielu ubezpieczycieli, by znaleźć
+							najkorzystniejsze ceny.
+						</p>
+					</div>
+					<div class="feature">
+						<div class="feature-icon">📞</div>
+						<h3>Wsparcie ekspertów</h3>
+						<p>
+							Nasi doradcy pomogą Ci w wyborze najlepszego ubezpieczenia
+							samochodu.
+						</p>
+					</div>
+				</div>
+			</section>
+		</main>
+		<footer class="footer">
+			<p>© 2024 Skanpolis. Wszelkie prawa zastrzeżone.</p>
+		</footer>
+	</body>
+</html>

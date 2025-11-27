@@ -55,7 +55,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <link rel="stylesheet" href="../css/manage_insurance.css">
 </head>
 <body>
-
 <header class="header">
     <div class="header-container">
         <h1 class="logo"><span class="part1">SKAN</span>POLIS</h1>

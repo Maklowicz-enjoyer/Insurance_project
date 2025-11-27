@@ -41,6 +41,7 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
       - SESSION_SECRET=${SESSION_SECRET}
       - APP_ENV=${APP_ENV:-development}
       - APP_DEBUG=${APP_DEBUG:-true}

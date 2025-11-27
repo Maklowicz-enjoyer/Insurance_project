@@ -14,15 +14,13 @@ $redisPort = getenv('REDIS_PORT') ?: '6379';
 ini_set('session.save_handler', 'redis');
 ini_set('session.save_path', "tcp://{$redisHost}:{$redisPort}?auth={$redisPassword}");
 
-// Security settings
-ini_set('session.gc_maxlifetime', '1800');
-ini_set('session.cookie_lifetime', '0');
-ini_set('session.cookie_httponly', '1');
-ini_set('session.cookie_samesite', 'Strict');
+// Security settings (basic settings in php.ini, dynamic settings here)
 ini_set('session.use_strict_mode', '1');
 ini_set('session.use_only_cookies', '1');
+ini_set('session.cookie_httponly', '1');
+ini_set('session.cookie_samesite', 'Strict');
 
-// Only set cookie_secure in production (HTTPS)
+// Set cookie_secure only in production (HTTPS)
 if (getenv('APP_ENV') === 'production') {
     ini_set('session.cookie_secure', '1');
 } else {

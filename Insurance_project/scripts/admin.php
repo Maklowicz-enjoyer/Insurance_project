@@ -1,4 +1,13 @@
 <?php
+// Sprawdź sesję - przekieruje do logowania jeśli wygasła
+require_once __DIR__ . '/session_check.php';
+
+// Sprawdź czy użytkownik jest adminem
+if (!$GLOBALS['current_user_is_admin']) {
+    header("Location: ../html/main.php");
+    exit;
+}
+
 // Include database configuration
 include('db_connect.php');
 

@@ -4,9 +4,11 @@ session_start();
 ob_start();
 
 require 'db_connect.php';
+require 'session_helper.php';
 
 $errors = [];
 $email = '';
+$sessionHelper = new SessionHelper();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Retrieve and sanitize input
@@ -34,25 +36,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($user && password_verify($password, $user['haslo'])) {
                 // Store user info in session
+                $isAdmin = ($user['SUser'] == 1);
                 $_SESSION['user_email'] = $email;
-                $_SESSION['is_admin'] = ($user['SUser'] == 1);
+                $_SESSION['is_admin'] = $isAdmin;
+
+                // Determine redirect URL
+                $redirectUrl = $isAdmin ? 'admin.php' : '../html/main.php';
+
+                // Check if there's a "return_to" URL (user tried to access protected page)
+                if (!empty($_GET['return_to'])) {
+                    $returnTo = $_GET['return_to'];
+                    // Security: only allow internal URLs
+                    if (strpos($returnTo, '/') === 0) {
+                        $redirectUrl = $returnTo;
+                    }
+                }
+
+                // Save extended session data to Redis
+                $sessionHelper->saveUserSession($email, $isAdmin, $redirectUrl);
 
                 // Clear output buffer before redirect
                 ob_end_clean();
 
-                // Check if the user is an admin (SUser = 1)
-                if ($user['SUser'] == 1) {
-                    // Login successful for admin: Redirect to admin.php
-                    header("Location: admin.php");
-                    exit;
-                } else {
-                    // Login successful for regular user: Redirect to main.html
-                    header("Location: ../html/main.html");
-                    exit;
-                }
+                // Redirect to appropriate page
+                header("Location: " . $redirectUrl);
+                exit;
             } else {
                 $errors[] = 'Invalid email or password.';
-            
+
             }
         } catch (PDOException $e) {
             $errors[] = 'Database error. Please try again later.';

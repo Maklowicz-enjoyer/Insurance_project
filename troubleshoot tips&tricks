@@ -1,0 +1,370 @@
+# Normalne kontenery
+  docker-compose ps
+
+  # Z profilem
+  docker-compose --profile dev ps
+
+  # Stan wszystkich kontenerów
+  docker ps -a
+
+  2. Logi
+
+  # Ostatnie linie
+  docker-compose logs <service> --tail=50
+
+  # Na żywo
+  docker-compose logs -f <service>
+
+  # Wszystkie serwisy
+  docker-compose logs --tail=100
+
+  3. Wykonywanie komend w kontenerze
+
+  # Bash interaktywny
+  docker exec -it <container_name> bash
+
+  # Jednorazowa komenda
+  docker exec <container_name> <command>
+
+  # PHP w kontenerze
+  docker exec skanpolis_php php -v
+
+  4. Debugowanie sesji PHP
+
+  # Sprawdź konfigurację sesji
+  docker exec skanpolis_php php -i | grep session
+
+  # Sprawdź Redis
+  docker exec skanpolis_redis redis-cli ping
+
+  # Test PHP połączenia
+  docker exec skanpolis_php php -r "var_dump(extension_loaded('redis'));"
+
+  5. Testowanie HTTP
+
+  # Prosty GET
+  curl -v http://localhost:8080
+
+  # POST z cookies
+  curl -c cookies.txt -b cookies.txt -X POST http://localhost:8080/scripts/login.php \
+    -d 'email=admin@skanpolis.pl' \
+    -d 'password=Admin123!@#'
+
+  # Sprawdź nagłówki
+  curl -I http://localhost:8080
+
+  6. Inspekcja bazy danych
+
+  # Z zewnątrz
+  mysql -h 127.0.0.1 -P 3306 -u insurance_user -p insurance_db
+
+  # W kontenerze
+  docker exec -it skanpolis_mysql mysql -u root -p insurance_db
+
+═══════════════════════════════════════════════════════════════
+  REDIS SESSION MANAGEMENT & TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════
+
+📌 OVERVIEW
+----------
+Od commita [hash] Redis jest domyślnym session handlerem dla PHP.
+Wszystkie sesje PHP są automatycznie zapisywane w Redis, co umożliwia:
+  ✓ Skalowanie aplikacji (multiple PHP containers → single Redis)
+  ✓ Centralizacja zarządzania sesjami
+  ✓ Lepsze performance (Redis in-memory)
+  ✓ Łatwe monitorowanie aktywnych sesji
+
+📋 KONFIGURACJA (już zaimplementowana)
+---------------------------------------
+
+1. docker-compose.yml
+   • Serwis Redis z hasłem: REDIS_PASSWORD (linia 94)
+   • PHP container ma zmienną REDIS_PASSWORD (linia 44)
+
+2. docker/php/session_config.php
+   • Automatycznie ładowany przez php.ini (auto_prepend_file)
+   • Konfiguruje Redis jako session handler
+   • Ustawienia bezpieczeństwa sesji (HttpOnly, SameSite, Strict mode)
+
+3. docker/php/php.ini
+   • auto_prepend_file = /usr/local/etc/php/session_config.php
+
+4. docker/php/Dockerfile
+   • Instaluje rozszerzenie Redis: pecl install redis
+
+🔍 WERYFIKACJA KONFIGURACJI
+----------------------------
+
+1. Sprawdź, czy Redis działa:
+
+   docker exec skanpolis_redis redis-cli -a "changeme_redis_password_here" ping
+
+   Oczekiwany output: PONG
+
+2. Sprawdź extension Redis w PHP:
+
+   docker exec skanpolis_php php -m | grep redis
+
+   Oczekiwany output: redis
+
+3. Sprawdź konfigurację session handler (przez web):
+
+   docker exec skanpolis_php php -r "
+   echo 'Session handler: ' . ini_get('session.save_handler') . PHP_EOL;
+   echo 'Session path: ' . ini_get('session.save_path') . PHP_EOL;
+   "
+
+   Oczekiwany output:
+   Session handler: redis
+   Session path: tcp://redis:6379?auth=changeme_redis_password_here
+
+4. Test pełnego cyklu (przez web server):
+
+   # Logowanie z zapisem cookie
+   curl -s -c /tmp/test_cookies.txt -b /tmp/test_cookies.txt \
+     -X POST 'http://localhost:8080/scripts/login.php' \
+     -d 'email=admin@skanpolis.pl' \
+     -d 'password=Admin123!@#' | grep -i "location"
+
+   # Sprawdź cookie
+   cat /tmp/test_cookies.txt | grep PHPSESSID
+
+   Oczekiwany output: #HttpOnly_localhost ... PHPSESSID [session_id]
+
+🔍 MONITOROWANIE SESJI W REDIS
+-------------------------------
+
+1. Lista wszystkich sesji:
+
+   docker exec skanpolis_redis redis-cli -a "changeme_redis_password_here" KEYS "PHPREDIS_SESSION:*" 2>/dev/null
+
+   Przykładowy output:
+   1) "PHPREDIS_SESSION:7f88da769bed9e3008b143824dab0e62"
+   2) "PHPREDIS_SESSION:be34ebd176e783c2f1dda42f11d7e41b"
+
+2. Liczba aktywnych sesji:
+
+   docker exec skanpolis_redis redis-cli -a "changeme_redis_password_here" KEYS "PHPREDIS_SESSION:*" 2>/dev/null | wc -l
+
+3. Podgląd danych sesji:
+
+   docker exec skanpolis_redis redis-cli -a "changeme_redis_password_here" GET "PHPREDIS_SESSION:[session_id]" 2>/dev/null
+
+   Przykładowy output:
+   user_email|s:18:"admin@skanpolis.pl";is_admin|b:1;
+
+4. TTL sesji (czas do wygaśnięcia):
+
+   docker exec skanpolis_redis redis-cli -a "changeme_redis_password_here" TTL "PHPREDIS_SESSION:[session_id]" 2>/dev/null
+
+   Output: liczba sekund (1800 = 30 minut)
+
+5. Usuń konkretną sesję (wyloguj użytkownika):
+
+   docker exec skanpolis_redis redis-cli -a "changeme_redis_password_here" DEL "PHPREDIS_SESSION:[session_id]" 2>/dev/null
+
+6. Usuń wszystkie sesje (wyloguj wszystkich):
+
+   docker exec skanpolis_redis redis-cli -a "changeme_redis_password_here" --scan --pattern "PHPREDIS_SESSION:*" | xargs docker exec skanpolis_redis redis-cli -a "changeme_redis_password_here" DEL
+
+7. Monitorowanie Redis w czasie rzeczywistym:
+
+   docker exec -it skanpolis_redis redis-cli -a "changeme_redis_password_here" MONITOR
+
+🚨 TROUBLESHOOTING - NAJCZĘSTSZE PROBLEMY
+------------------------------------------
+
+PROBLEM 1: "Session handler = files" zamiast "redis"
+-----------------------------------------------------
+Symptom: Session handler wciąż jest "files" mimo konfiguracji
+
+Przyczyna: auto_prepend_file działa tylko przez web server (nginx/php-fpm),
+           nie działa w PHP CLI
+
+Rozwiązanie:
+  1. Testuj ZAWSZE przez web server (curl), NIE przez php -r w CLI
+  2. Sprawdź przez web:
+
+     curl -s http://localhost:8080/test_simple_session.php
+
+  3. Zrestartuj PHP-FPM:
+
+     docker-compose restart php
+
+PROBLEM 2: "NOAUTH Authentication required"
+--------------------------------------------
+Symptom: Redis wymaga hasła, ale nie jest przekazywane
+
+Przyczyna: Brak zmiennej REDIS_PASSWORD w docker-compose.yml
+
+Rozwiązanie:
+  1. Sprawdź docker-compose.yml linia 44:
+
+     - REDIS_PASSWORD=${REDIS_PASSWORD}
+
+  2. Sprawdź .env linia 36:
+
+     REDIS_PASSWORD=changeme_redis_password_here
+
+  3. Zrestartuj kontenery:
+
+     docker-compose down && docker-compose up -d
+
+PROBLEM 3: Sesje nie są zapisywane w Redis
+-------------------------------------------
+Symptom: KEYS "*" zwraca pustą listę
+
+Przyczyna 1: session_start() nie jest wywoływane w PHP
+Rozwiązanie: Dodaj session_start() na początku skryptu
+
+Przyczyna 2: Session ID jest pusty (brak cookies)
+Rozwiązanie: Testuj z cookies:
+
+  curl -c cookies.txt -b cookies.txt http://localhost:8080/...
+
+Przyczyna 3: Redis jest niedostępny
+Rozwiązanie: Sprawdź status kontenera:
+
+  docker-compose ps redis
+  docker-compose logs redis
+
+PROBLEM 4: "Warning: session_start(): Session cannot be started after headers"
+-------------------------------------------------------------------------------
+Symptom: Sesja nie startuje z powodu wysłanych nagłówków
+
+Przyczyna: Coś generuje output przed session_start() (np. echo, whitespace, BOM)
+
+Rozwiązanie:
+  1. Upewnij się, że session_start() jest PRZED jakimkolwiek output
+  2. Sprawdź, czy pliki PHP nie mają BOM:
+
+     od -c [file.php] | head -3
+
+  3. Użyj ob_start() na początku skryptu
+
+PROBLEM 5: Sesje wygasają za szybko
+------------------------------------
+Symptom: Użytkownicy są wylogowywani po kilku minutach
+
+Rozwiązanie: Sprawdź session.gc_maxlifetime:
+
+  docker exec skanpolis_php php -r "echo ini_get('session.gc_maxlifetime');"
+
+Powinno być: 1800 (30 minut)
+
+Jeśli nie, edytuj docker/php/session_config.php linia 18
+
+PROBLEM 6: Sesje nie są współdzielone między różnymi subdomenami
+-----------------------------------------------------------------
+Symptom: Logowanie na www.example.com nie działa na api.example.com
+
+Rozwiązanie: Ustaw session.cookie_domain w session_config.php:
+
+  ini_set('session.cookie_domain', '.example.com');
+
+📊 UŻYTECZNE KOMENDY REDIS
+---------------------------
+
+# Informacje o Redis
+docker exec skanpolis_redis redis-cli -a "changeme_redis_password_here" INFO stats 2>/dev/null
+
+# Użycie pamięci
+docker exec skanpolis_redis redis-cli -a "changeme_redis_password_here" INFO memory 2>/dev/null
+
+# Liczba kluczy
+docker exec skanpolis_redis redis-cli -a "changeme_redis_password_here" DBSIZE 2>/dev/null
+
+# Konfiguracja Redis
+docker exec skanpolis_redis redis-cli -a "changeme_redis_password_here" CONFIG GET "*" 2>/dev/null
+
+# Flush wszystkich danych (UWAGA: usuwa WSZYSTKO!)
+docker exec skanpolis_redis redis-cli -a "changeme_redis_password_here" FLUSHALL 2>/dev/null
+
+🚀 SETUP DLA DRUGIEGO PROGRAMISTY
+----------------------------------
+
+Aby uruchomić projekt z Redis session management:
+
+1. Sklonuj repozytorium:
+
+   git clone [repo_url]
+   cd [project_dir]
+
+2. Skopiuj .env.example do .env:
+
+   cp .env.example .env
+
+3. Wygeneruj silne hasła (NIE używaj domyślnych!):
+
+   # Wygeneruj hasło dla bazy danych
+   openssl rand -base64 32
+
+   # Wygeneruj hasło dla Redis
+   openssl rand -base64 32
+
+   # Wygeneruj session secret
+   openssl rand -base64 64
+
+4. Edytuj .env i zamień placeholdery:
+
+   DB_PASSWORD=[wygenerowane_hasło_db]
+   MYSQL_ROOT_PASSWORD=[wygenerowane_hasło_root]
+   REDIS_PASSWORD=[wygenerowane_hasło_redis]
+   SESSION_SECRET=[wygenerowany_secret]
+
+5. Uruchom kontenery:
+
+   docker-compose up -d
+
+6. Sprawdź status:
+
+   docker-compose ps
+
+   Wszystkie kontenery powinny mieć status "Up"
+
+7. Weryfikuj Redis session handler:
+
+   # Sprawdź Redis
+   docker exec skanpolis_redis redis-cli -a "[twoje_redis_password]" ping
+
+   # Test logowania
+   curl -c /tmp/cookies.txt -b /tmp/cookies.txt \
+     -X POST 'http://localhost:8080/scripts/login.php' \
+     -d 'email=admin@skanpolis.pl' \
+     -d 'password=Admin123!@#'
+
+   # Sprawdź sesję w Redis
+   docker exec skanpolis_redis redis-cli -a "[twoje_redis_password]" KEYS "*" 2>/dev/null
+
+8. Otwórz aplikację w przeglądarce:
+
+   http://localhost:8080
+
+✅ JEŚLI WSZYSTKO DZIAŁA:
+   • Strona logowania wczytuje się
+   • Po zalogowaniu jesteś przekierowany do panelu
+   • W Redis widoczne są klucze PHPREDIS_SESSION:*
+   • docker-compose ps pokazuje wszystkie kontenery jako "Up"
+
+❌ JEŚLI COŚ NIE DZIAŁA:
+   • Zobacz sekcję TROUBLESHOOTING powyżej
+   • Sprawdź logi: docker-compose logs php
+   • Sprawdź logi: docker-compose logs redis
+   • Upewnij się, że porty 8080, 6379, 3306 nie są zajęte
+
+📝 UWAGI DLA DRUGIEGO PROGRAMISTY:
+-----------------------------------
+1. Plik .env jest w .gitignore - NIGDY nie commituj go!
+2. Secrets są w secrets/ - NIGDY nie commituj tego katalogu!
+3. Redis password musi być takie samo w:
+   • .env (REDIS_PASSWORD)
+   • docker-compose.yml używa ${REDIS_PASSWORD}
+   • PHP automatycznie używa getenv('REDIS_PASSWORD')
+4. Domyślne dane logowania (tylko dla development):
+   • Admin: admin@skanpolis.pl / Admin123!@#
+   • User: user@example.pl / User123!@#
+5. W produkcji zmień:
+   • APP_ENV=production
+   • APP_DEBUG=false
+   • FORCE_HTTPS=true
+   • Wszystkie hasła na silniejsze (min 32 znaki)
