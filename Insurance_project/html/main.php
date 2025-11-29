@@ -1,6 +1,15 @@
 <?php
-// Sprawdź sesję - przekieruje do logowania jeśli wygasła
+// Sprawdź sesję
 require_once __DIR__ . '/../scripts/session_check.php';
+require_once __DIR__ . '/../scripts/db_connect.php';
+
+// Pobierz marki samochodów
+$carBrandsStmt = $pdo->query("SELECT Brand_Name FROM CarBrands ORDER BY Brand_Name ASC");
+$carBrands = $carBrandsStmt->fetchAll(PDO::FETCH_COLUMN);
+
+// Pobierz marki motocykli
+$motoBrandsStmt = $pdo->query("SELECT Brand_Name FROM MotorcycleBrands ORDER BY Brand_Name ASC");
+$motoBrands = $motoBrandsStmt->fetchAll(PDO::FETCH_COLUMN);
 ?>
 <!DOCTYPE html>
 <html lang="pl">
@@ -17,7 +26,7 @@ require_once __DIR__ . '/../scripts/session_check.php';
       <h1 class="logo"><span class="part1">SKAN</span>POLIS</h1>
       <div class="header-buttons">
         <a href="../index.html" class="btn back">POWRÓT</a>
-        <a href="account.html" class="btn acc">MOJE KONTO</a>
+        <a href="account.php" class="btn acc">MOJE KONTO</a>
         <a href="../scripts/logout.php" class="btn logout">WYLOGUJ SIĘ</a>
       </div>
     </div>
@@ -26,10 +35,7 @@ require_once __DIR__ . '/../scripts/session_check.php';
   <main>
     <h2 class="title">FORMULARZ WYSZUKIWANIA UBEZPIECZENIA</h2>
 
-    <!-- Container z przełącznikiem i formularzem -->
     <div class="form-container">
-
-      <!-- Przełącznik Samochody/Motocykle -->
       <div class="vehicle-type-switch">
         <button type="button" class="switch-btn active" data-type="car">
           🚗 SAMOCHODY
@@ -39,36 +45,54 @@ require_once __DIR__ . '/../scripts/session_check.php';
         </button>
       </div>
 
-      <!-- JEDEN FORMULARZ z dynamicznymi polami -->
       <form id="insurance-form" action="../scripts/manage_insurance.php" method="POST" class="insurance-form">
         <input type="hidden" id="vehicle_type" name="vehicle_type" value="CAR">
 
-        <!-- Wspólne pola dla obu typów -->
         <div class="field-group">
           <label for="dob">Data urodzenia kierowcy</label>
-          <input type="date" id="dob" name="dob">
+          <input type="date" id="dob" name="dob" required>
         </div>
 
         <div class="field-group">
           <label for="insurance-date">Data rozpoczęcia ubezpieczenia</label>
-          <input type="date" id="insurance-date" name="insurance_date">
+          <input type="date" id="insurance-date" name="insurance_date" required>
         </div>
 
-        <div class="field-group">
-          <label for="brand" id="brand-label">Marka pojazdu</label>
-          <input type="text" id="brand" name="brand">
+        <!-- SELECT dla marek samochodów -->
+        <div class="field-group" id="car-brand-group">
+          <label for="car-brand">Marka samochodu</label>
+          <select id="car-brand" name="brand" required>
+            <option value="">Wybierz markę...</option>
+            <?php foreach ($carBrands as $brand): ?>
+              <option value="<?php echo htmlspecialchars($brand); ?>">
+                <?php echo htmlspecialchars($brand); ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+
+        <!-- SELECT dla marek motocykli (ukryty domyślnie) -->
+        <div class="field-group" id="moto-brand-group" style="display: none;">
+          <label for="moto-brand">Marka motocykla</label>
+          <select id="moto-brand" name="brand">
+            <option value="">Wybierz markę...</option>
+            <?php foreach ($motoBrands as $brand): ?>
+              <option value="<?php echo htmlspecialchars($brand); ?>">
+                <?php echo htmlspecialchars($brand); ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
         </div>
 
         <div class="field-group">
           <label for="insurance-type">Typ ubezpieczenia</label>
-          <select id="insurance-type" name="typ_ubezpieczenia">
+          <select id="insurance-type" name="typ_ubezpieczenia" required>
             <option value="">Wybierz...</option>
             <option value="OC">OC</option>
             <option value="OC/AC">OC/AC</option>
           </select>
         </div>
 
-        <!-- POLA TYLKO DLA SAMOCHODÓW -->
         <div class="field-group car-only">
           <label for="typ_nadwozia">Typ Nadwozia</label>
           <select id="typ_nadwozia" name="typ_nadwozia">
@@ -85,7 +109,7 @@ require_once __DIR__ . '/../scripts/session_check.php';
 
         <div class="field-group">
           <label for="usage">Typ użytkowania</label>
-          <select id="usage" name="use_type">
+          <select id="usage" name="use_type" required>
             <option value="">Wybierz...</option>
             <option value="LEASING">LEASING</option>
             <option value="PRYWATNIE">PRYWATNIE</option>
@@ -94,28 +118,25 @@ require_once __DIR__ . '/../scripts/session_check.php';
 
         <div class="field-group">
           <label for="year">Rok produkcji</label>
-          <input type="number" id="year" name="year" min="1990" max="2025">
+          <input type="number" id="year" name="year" min="1990" max="2025" required>
         </div>
 
         <div class="field-group">
           <label for="license-date">Data wydania prawa jazdy</label>
-          <input type="date" id="license-date" name="license_date">
+          <input type="date" id="license-date" name="license_date" required>
         </div>
 
-        <!-- POLE POJEMNOŚĆ - wspólne ale z inną logiką -->
         <div class="field-group">
           <label for="capacity" id="capacity-label">Pojemność silnika (cm³)</label>
           <input type="number" id="capacity" name="capacity" min="500" max="8000">
           <small id="capacity-hint" class="motorcycle-only" style="display:none;">Pole obowiązkowe dla motocykli</small>
         </div>
 
-        <!-- POLE TYLKO DLA MOTOCYKLI - MOC -->
         <div class="field-group motorcycle-only" style="display:none;">
           <label for="power">Moc silnika (KM)</label>
           <input type="number" id="power" name="power_hp" min="5" max="300" placeholder="np. 75">
         </div>
 
-        <!-- POLE TYLKO DLA MOTOCYKLI - TYP MOTOCYKLA -->
         <div class="field-group motorcycle-only" style="display:none;">
           <label for="motorcycle-type">Typ motocykla</label>
           <select id="motorcycle-type" name="motorcycle_type">
@@ -132,7 +153,6 @@ require_once __DIR__ . '/../scripts/session_check.php';
           <input type="number" id="damage" name="damage" min="0" max="20">
         </div>
 
-        <!-- POLA TYLKO DLA SAMOCHODÓW -->
         <div class="field-group car-only">
           <label for="fuel">Rodzaj paliwa</label>
           <select id="fuel" name="fuel">
@@ -162,20 +182,12 @@ require_once __DIR__ . '/../scripts/session_check.php';
           </select>
         </div>
 
-        <!-- Placeholder dla wyrównania grida -->
         <div class="field-group placeholder motorcycle-only" style="display:none;"></div>
 
         <button type="submit" class="search-btn">SZUKAJ POLISY</button>
       </form>
 
     </div>
-
-    <h2 class="main-heading">Dobrze, że wybrałeś(aś) kalkulator OC i AC SKANPOLIS</h2>
-
-    <p class="info-text">
-      Kalkulator OC i AC SKANPOLIS prezentuje wyłącznie aktualne oferty OC i OC+AC.
-      Oferty ubezpieczeń dostępne w kalkulatorze OC AC są ofertami firm ubezpieczeniowych, a ich ceny są wyliczane przez towarzystwa na podstawie danych wprowadzonych w formularzu przez użytkownika serwisu.
-    </p>
 
   </main>
 
@@ -184,11 +196,13 @@ require_once __DIR__ . '/../scripts/session_check.php';
   </footer>
 
   <script>
-    // Przełączanie między typami pojazdów
     const switchButtons = document.querySelectorAll('.switch-btn');
     const form = document.getElementById('insurance-form');
     const vehicleTypeInput = document.getElementById('vehicle_type');
-    const brandLabel = document.getElementById('brand-label');
+    const carBrandGroup = document.getElementById('car-brand-group');
+    const motoBrandGroup = document.getElementById('moto-brand-group');
+    const carBrandSelect = document.getElementById('car-brand');
+    const motoBrandSelect = document.getElementById('moto-brand');
     const capacityLabel = document.getElementById('capacity-label');
     const capacityInput = document.getElementById('capacity');
     const capacityHint = document.getElementById('capacity-hint');
@@ -197,15 +211,19 @@ require_once __DIR__ . '/../scripts/session_check.php';
       button.addEventListener('click', function() {
         const vehicleType = this.getAttribute('data-type');
 
-        // Zmień aktywny przycisk
         switchButtons.forEach(btn => btn.classList.remove('active'));
         this.classList.add('active');
 
         if (vehicleType === 'car') {
-          // Przełącz na samochody
           vehicleTypeInput.value = 'CAR';
           form.action = '../scripts/manage_insurance.php';
-          brandLabel.textContent = 'Marka pojazdu';
+          
+          // Pokaż select dla samochodów, ukryj dla motocykli
+          carBrandGroup.style.display = 'flex';
+          motoBrandGroup.style.display = 'none';
+          carBrandSelect.required = true;
+          motoBrandSelect.required = false;
+          
           capacityLabel.textContent = 'Pojemność silnika (cm³)';
           capacityInput.name = 'capacity';
           capacityInput.min = '500';
@@ -213,21 +231,24 @@ require_once __DIR__ . '/../scripts/session_check.php';
           capacityInput.removeAttribute('required');
           capacityHint.style.display = 'none';
 
-          // Pokaż pola dla samochodów
           document.querySelectorAll('.car-only').forEach(el => {
             el.style.display = 'flex';
           });
 
-          // Ukryj pola dla motocykli
           document.querySelectorAll('.motorcycle-only').forEach(el => {
             el.style.display = 'none';
           });
 
         } else {
-          // Przełącz na motocykle
           vehicleTypeInput.value = 'MOTORCYCLE';
           form.action = '../scripts/manage_motorcycle_insurance.php';
-          brandLabel.textContent = 'Marka motocykla';
+          
+          // Pokaż select dla motocykli, ukryj dla samochodów
+          carBrandGroup.style.display = 'none';
+          motoBrandGroup.style.display = 'flex';
+          carBrandSelect.required = false;
+          motoBrandSelect.required = true;
+          
           capacityLabel.innerHTML = 'Pojemność silnika (cm³) <span style="color:red;">*</span>';
           capacityInput.name = 'engine_capacity';
           capacityInput.min = '50';
@@ -235,12 +256,10 @@ require_once __DIR__ . '/../scripts/session_check.php';
           capacityInput.setAttribute('required', 'required');
           capacityHint.style.display = 'block';
 
-          // Ukryj pola dla samochodów
           document.querySelectorAll('.car-only').forEach(el => {
             el.style.display = 'none';
           });
 
-          // Pokaż pola dla motocykli
           document.querySelectorAll('.motorcycle-only').forEach(el => {
             el.style.display = 'flex';
           });

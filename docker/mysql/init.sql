@@ -145,6 +145,25 @@ CREATE TABLE IF NOT EXISTS `MotorcycleInsurance` (
       ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+
+-- Tabela z markami samochodów
+CREATE TABLE IF NOT EXISTS CarBrands (
+    Brand_ID INT AUTO_INCREMENT PRIMARY KEY,
+    Brand_Name VARCHAR(100) NOT NULL UNIQUE,
+    Country VARCHAR(100),
+    Created_At TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Tabela z markami motocykli
+CREATE TABLE IF NOT EXISTS MotorcycleBrands (
+    Brand_ID INT AUTO_INCREMENT PRIMARY KEY,
+    Brand_Name VARCHAR(100) NOT NULL UNIQUE,
+    Country VARCHAR(100),
+    Created_At TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+
 -- ============================================
 -- 6. VIEW Insurance (UNION of CarInsurance and MotorcycleInsurance)
 -- ============================================
@@ -166,6 +185,28 @@ CREATE TABLE IF NOT EXISTS `Sessions` (
   PRIMARY KEY (`session_id`),
   KEY `idx_user_id` (`user_id`),
   KEY `idx_last_activity` (`last_activity`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ============================================
+-- TABELA DLA ULUBIONYCH OFERT
+-- ============================================
+-- Przechowuje oferty zapisane przez użytkowników
+
+CREATE TABLE IF NOT EXISTS `FavoriteInsurance` (
+  `Favorite_ID` INT NOT NULL AUTO_INCREMENT,
+  `Users_ID` INT NOT NULL,
+  `Insurance_ID` INT NOT NULL,
+  `Insurance_Type` ENUM('CAR', 'MOTORCYCLE') NOT NULL,
+  `Added_Date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `Notes` TEXT DEFAULT NULL,
+  PRIMARY KEY (`Favorite_ID`),
+  UNIQUE KEY `unique_favorite` (`Users_ID`, `Insurance_ID`, `Insurance_Type`),
+  KEY `idx_users_id` (`Users_ID`),
+  CONSTRAINT `FavoriteInsurance_User_FK`
+      FOREIGN KEY (`Users_ID`)
+      REFERENCES `User` (`Users_ID`)
+      ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
@@ -222,6 +263,62 @@ INSERT INTO `MotorcycleInsurance` (`Users_ID`, `Vehicle_ID`, `Insurance_name`, `
 (2, 2, 'PZU', 'OC', 'PRYWATNIE', '2025-12-31', 1500, 'cruiser', 130, 1580.00),
 (2, 2, 'Warta', 'OC', 'PRYWATNIE', '2025-12-31', 1500, 'bobber', 135, 1620.00),
 (2, 2, 'Link4', 'OC/AC', 'PRYWATNIE', '2025-12-31', 1500, 'cruiser', 130, 3050.00);
+
+
+-- Dodaj marki samochodów
+INSERT INTO CarBrands (Brand_Name, Country) VALUES
+('Audi', 'Niemcy'),
+('BMW', 'Niemcy'),
+('Mercedes-Benz', 'Niemcy'),
+('Volkswagen', 'Niemcy'),
+('Opel', 'Niemcy'),
+('Ford', 'USA'),
+('Chevrolet', 'USA'),
+('Toyota', 'Japonia'),
+('Honda', 'Japonia'),
+('Mazda', 'Japonia'),
+('Nissan', 'Japonia'),
+('Subaru', 'Japonia'),
+('Mitsubishi', 'Japonia'),
+('Lexus', 'Japonia'),
+('Hyundai', 'Korea Płd.'),
+('Kia', 'Korea Płd.'),
+('Peugeot', 'Francja'),
+('Renault', 'Francja'),
+('Citroen', 'Francja'),
+('Fiat', 'Włochy'),
+('Alfa Romeo', 'Włochy'),
+('Volvo', 'Szwecja'),
+('Skoda', 'Czechy'),
+('Seat', 'Hiszpania'),
+('Tesla', 'USA'),
+('Dacia', 'Rumunia'),
+('Porsche', 'Niemcy')
+ON DUPLICATE KEY UPDATE Brand_Name=Brand_Name;
+
+-- Dodaj marki motocykli
+INSERT INTO MotorcycleBrands (Brand_Name, Country) VALUES
+('Honda', 'Japonia'),
+('Yamaha', 'Japonia'),
+('Kawasaki', 'Japonia'),
+('Suzuki', 'Japonia'),
+('Harley-Davidson', 'USA'),
+('BMW', 'Niemcy'),
+('KTM', 'Austria'),
+('Ducati', 'Włochy'),
+('Triumph', 'Wielka Brytania'),
+('Indian', 'USA'),
+('Aprilia', 'Włochy'),
+('MV Agusta', 'Włochy'),
+('Royal Enfield', 'Indie'),
+('Husqvarna', 'Szwecja'),
+('Benelli', 'Włochy'),
+('Can-Am', 'Kanada'),
+('Moto Guzzi', 'Włochy'),
+('Norton', 'Wielka Brytania'),
+('Buell', 'USA'),
+('CFMoto', 'Chiny')
+ON DUPLICATE KEY UPDATE Brand_Name=Brand_Name;
 
 -- ============================================
 -- CREATE Insurance VIEW (UNION of CarInsurance and MotorcycleInsurance)

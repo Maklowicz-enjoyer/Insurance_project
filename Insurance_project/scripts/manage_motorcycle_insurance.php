@@ -94,8 +94,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <div class="header-container">
         <h1 class="logo"><span class="part1">SKAN</span>POLIS</h1>
         <div class="header-buttons">
-            <a href="../html/main.html" class="btn back">ZMIEŃ DANE</a>
-            <a href="../html/account.html" class="btn acc">MOJE KONTO</a>
+            <a href="../html/main.php" class="btn back">ZMIEŃ DANE</a>
+            <a href="../html/account.php" class="btn acc">MOJE KONTO</a>
             <a href="../index.html" class="btn logout">WYLOGUJ SIĘ</a>
         </div>
     </div>
@@ -142,7 +142,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             <p class="price"><strong><?php echo number_format($insurance['Price'], 2, ',', ' '); ?> zł</strong></p>
                             <p class="installment">lub <?php echo number_format($insurance['Price'] / 12, 2, ',', ' '); ?> zł x 12 rat</p>
                         </div>
-                        <a href="../html/detail.html" class="btn choose-btn">Wybierz ofertę</a>
+                        <a href="../html/detail.php?id=<?php echo $insurance['Insurance_ID']; ?>&type=MOTORCYCLE" class="btn choose-btn">Wybierz ofertę</a>
                     </div>
                 </div>
             <?php endforeach; ?>

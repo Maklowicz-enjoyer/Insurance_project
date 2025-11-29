@@ -1,3 +1,4 @@
+/* Insurance_project/css/detail.css */
 
 * {
     margin: 0;
@@ -6,13 +7,13 @@
   }
   
   html, body {
-    font-family: Arial, sans-serif;
-    background-color: #f9fff9;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Nowoczesna czcionka */
+    background-color: #f0f2f5; /* Lekko szare tło, żeby biała karta się wyróżniała */
     color: #333;
     height: 100%;
   }
   
-  
+  /* --- HEADER (PRZYWRÓCONY ORYGINAŁ) --- */
   .header {
     background: linear-gradient(135deg, #00897b, #26a69a);
     padding: 10px 20px;
@@ -23,6 +24,7 @@
     top: 0;
     width: 100%;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
   }
   
   .header-container {
@@ -56,99 +58,180 @@
     font-weight: bold;
     border: none;
     cursor: pointer;
+    font-size: 14px;
   }
   
   .btn:hover {
-    background-color: #4da64d;
+    background: linear-gradient(135deg, #00796b, #00897b); /* Poprawiony hover dla gradientu */
   }
   
   
+  /* --- MAIN CONTENT (POPRAWIONY WYGLĄD) --- */
   main {
-    padding: 120px 20px 40px; 
+    padding-top: 100px; /* Miejsce na header */
+    padding-bottom: 60px;
     max-width: 900px;
     margin: 0 auto;
+    display: flex;
+    justify-content: center;
   }
   
+  /* Karta oferty (Główny prostokąt) */
   .offer-detail {
-    border: 2px solid #99cc99;
-    background-color: #e6ffe6;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff; /* Czysta biel */
+    width: 100%;
+    border-radius: 10px; /* Zaokrąglone rogi */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Elegancki cień zamiast ramki */
+    padding: 30px;
+    border-top: 4px solid #00897b; /* Zielony akcent na górze */
   }
   
+  /* Nagłówek karty (Firma i Cena) */
   .offer-summary {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid green;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee; /* Delikatna linia oddzielająca */
   }
   
   .offer-title {
-    font-size: 20px;
-    font-weight: bold;
-    color: #e0f7f4;
+    font-size: 24px;
+    font-weight: 700;
+    color: #333;
+    margin: 0;
   }
   
-  .offer-coverage {
-    font-size: 14px;
-    color: #555;
+  .offer-price {
+    font-size: 16px;
+    color: #666;
+    text-align: right;
   }
   
   .offer-price span {
-    font-size: 18px;
-    font-weight: bold;
-    color: #e0f7f4;
+    font-size: 24px;
+    font-weight: 800;
+    color: #00897b; /* Zielony kolor ceny */
+    display: block;
   }
   
+  /* Sekcja danych (Wewnętrzny prostokąt) */
   .offer-details h3 {
-    margin-bottom: 10px;
-    font-size: 16px;
-    font-weight: bold;
-    color: #333;
+    margin-bottom: 15px;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #999;
+    letter-spacing: 0.5px;
   }
   
   .offer-description {
-    background-color: #ddd;
-    padding: 15px;
-    border-radius: 4px;
-    font-size: 14px;
-    color: #333;
+    background-color: #f9fbfb; /* Bardzo jasne tło dla danych */
+    padding: 20px;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+    font-size: 15px;
+    color: #444;
+    line-height: 1.6;
   }
   
+  .offer-description p {
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed #ddd; /* Przerywana linia między danymi */
+  }
+  
+  .offer-description p:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+  
+  .offer-description strong {
+    color: #000;
+    font-weight: 600;
+  }
+  
+  /* Przyciski na dole */
   .send-option {
-    text-align: center;
-    margin-top: 20px;
+    margin-top: 25px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
   }
   
   .send-btn {
-    background-color: #e0f7f4;
+    background-color: #00897b;
     color: #fff;
-    padding: 12px 30px;
-    font-size: 16px;
+    padding: 12px 24px;
+    font-size: 15px;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
     font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   }
   
   .send-btn:hover {
-    background-color: #005c00;
+    background-color: #00796b;
+    transform: translateY(-1px);
   }
   
+ /* --- Przycisk Ulubione (POPRAWIONY KONTRAST) --- */
   
+  /* Domyślny stan (Dodaj do ulubionych) - Pomarańczowe tło, biały tekst */
+  .btn.fav {
+    background-color: #ff9800; /* Wyraźny pomarańczowy */
+    color: #ffffff !important; /* Wymuszony biały tekst */
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  
+  .btn.fav:hover {
+    background-color: #f57c00; /* Ciemniejszy pomarańcz po najechaniu */
+    color: #ffffff !important;
+  }
+  
+  /* Stan usuwania (Usuń z ulubionych) - Czerwone tło, biały tekst */
+  .btn.fav.remove {
+    background-color: #e53935; /* Wyraźny czerwony */
+    color: #ffffff !important; /* Wymuszony biały tekst */
+  }
+  
+  .btn.fav.remove:hover {
+    background-color: #d32f2f; /* Ciemniejszy czerwony po najechaniu */
+    color: #ffffff !important;
+  }
+  /* Alert messages */
+  .alert {
+    padding: 12px;
+    margin-bottom: 20px;
+    border-radius: 6px;
+    text-align: center;
+    font-weight: bold;
+    background: #dff0d8;
+    color: #3c763d;
+    border: 1px solid #d6e9c6;
+  }
+  
+  /* Footer */
   .footer {
     background-color: #f2f2f2;
     text-align: center;
     padding: 10px;
-    font-size: 14px;
+    font-size: 13px;
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
     color: #333;
-    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
   }
-  
