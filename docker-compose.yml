@@ -45,6 +45,17 @@ services:
       - SESSION_SECRET=${SESSION_SECRET}
       - APP_ENV=${APP_ENV:-development}
       - APP_DEBUG=${APP_DEBUG:-true}
+      - APP_URL=${APP_URL:-http://localhost:8080}
+      - MAIL_HOST=${MAIL_HOST:-maildev}
+      - MAIL_PORT=${MAIL_PORT:-1025}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - MAIL_ENCRYPTION=${MAIL_ENCRYPTION}
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-noreply@skanpolis.pl}
+      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-SkanPolis}
+      - PASSWORD_RESET_TOKEN_LIFETIME=${PASSWORD_RESET_TOKEN_LIFETIME:-3600}
+      - PASSWORD_RESET_THROTTLE=${PASSWORD_RESET_THROTTLE:-300}
+      - PASSWORD_MIN_LENGTH=${PASSWORD_MIN_LENGTH:-12}
     secrets:
       - db_password
       - session_secret
@@ -110,6 +121,21 @@ services:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
     depends_on:
       - mysql
+    networks:
+      - skanpolis_network
+    restart: unless-stopped
+    profiles:
+      - dev
+
+  # ========================================
+  # MailDev (Development Email Testing)
+  # ========================================
+  maildev:
+    image: maildev/maildev
+    container_name: skanpolis_maildev
+    ports:
+      - "1080:1080"  # Web UI
+      - "1025:1025"  # SMTP
     networks:
       - skanpolis_network
     restart: unless-stopped

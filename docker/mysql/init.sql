@@ -364,5 +364,29 @@ FROM MotorcycleInsurance;
 -- Already created inline with table definitions
 
 -- ============================================
+-- 8. Tabela tokenów resetowania hasła
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS `password_resets` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `email` VARCHAR(255) NOT NULL,
+  `token` VARCHAR(255) NOT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `expires_at` TIMESTAMP NOT NULL,
+  `used` TINYINT(1) DEFAULT 0,
+  `ip_address` VARCHAR(45) DEFAULT NULL,
+  `user_agent` VARCHAR(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_email` (`email`),
+  KEY `idx_token` (`token`),
+  KEY `idx_expires_at` (`expires_at`),
+  KEY `idx_used` (`used`),
+  CONSTRAINT `password_resets_email_fk`
+      FOREIGN KEY (`email`)
+      REFERENCES `User` (`email`)
+      ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
 -- Database initialization complete
 -- ============================================

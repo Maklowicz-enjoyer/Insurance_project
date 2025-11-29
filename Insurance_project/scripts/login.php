@@ -113,8 +113,13 @@ ob_end_flush();
         <input type="password" id="password" name="password" placeholder="Wpisz haslo" required autocomplete="current-password" spellcheck="false">
 
         <button type="submit" class="login-btn">ZALOGUJ SIĘ</button>
-        <button type="button" class="reset-btn" onclick="alert('Funkcja odzyskiwania hasła jeszcze nie zaimplementowana')">Zapomniałem hasła</button>
       </form>
+
+      <div style="text-align: center; margin-top: 15px;">
+        <a href="/scripts/forgot_password.php" style="color: #00897b; text-decoration: none; font-size: 14px;">
+          Zapomniałeś hasła?
+        </a>
+      </div>
     </div>
   </main>
 
