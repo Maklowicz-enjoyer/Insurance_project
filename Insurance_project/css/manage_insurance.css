@@ -50,7 +50,7 @@ html, body {
 .header-buttons .btn {
     margin-left: 10px;
     background: linear-gradient(135deg, #00897b, #26a69a);
-    color: white;
+    color: rgb(255, 255, 255);
     border: none;
     padding: 8px 16px;
     border-radius: 4px;
@@ -175,7 +175,7 @@ button:hover {
 
 .offer .choose-btn {
     display: inline-block;
-    background-color: #e0f7f4;
+    background-color: #00897b;
     color: white;
     text-align: center;
     padding: 10px 20px;
@@ -186,7 +186,7 @@ button:hover {
 }
 
 .offer .choose-btn:hover {
-    background-color: #005c00;
+    background-color: #05b3a1;
 }
 
 /* Footer */

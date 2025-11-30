@@ -1,3 +1,17 @@
+:root {
+    --primary-color: #00897b;
+    --primary-dark: #00695c;
+    --secondary-color: #26a69a;
+    --accent-color: #ff6f00;
+    --text-dark: #333;
+    --text-light: #777;
+    --bg-light: #f4f6f8;
+    --white: #ffffff;
+    --danger: #d32f2f;
+    --success: #388e3c;
+    --shadow: 0 4px 6px rgba(0,0,0,0.1);
+    --radius: 8px;
+}
 
 * {
     margin: 0;
@@ -6,183 +20,256 @@
 }
 
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f8f8f8;
-    color: #333;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-light);
+    color: var(--text-dark);
 }
 
-
+/* Header */
 .header {
-    background: linear-gradient(135deg, #00897b, #26a69a);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 20px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    padding: 15px 30px;
     position: fixed;
     top: 0;
     width: 100%;
     z-index: 1000;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow);
 }
 
 .header-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    width: 100%;
-}
-
-.admin-title {
+    max-width: 1400px;
     margin: 0 auto;
-    font-size: 28px;
-    font-weight: bold;
-    color: #333;
-    text-align: center;
-}
-
-.btn.back {
-    background: linear-gradient(135deg, #00897b, #26a69a);
-    color: white;
-    padding: 8px 16px;
-    text-decoration: none;
-    border-radius: 4px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.btn.back:hover {
-    background: linear-gradient(135deg, #00796b, #00897b);
 }
 
 .logo {
-    font-size: 32px;
-    font-weight: bold;
-    color: black;
-}
-
-.logo .part1 {
-    color: #e0f7f4; 
-}
-
-
-
-main {
-    margin-top: 80px; 
-    padding: 20px;
-    background-color: white;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    max-width: 95%;
-    margin: 100px auto;
-    border-radius: 8px;
-}
-
-.section-title {
     font-size: 24px;
-    margin-bottom: 20px;
-    text-align: center;
+    font-weight: bold;
+    color: var(--white);
 }
 
+.logo .part1 { color: #e0f7f4; }
+
+.btn-logout {
+    background: rgba(255,255,255,0.2);
+    color: var(--white);
+    padding: 8px 15px;
+    border-radius: var(--radius);
+    text-decoration: none;
+    font-size: 14px;
+    transition: background 0.3s;
+}
+
+.btn-logout:hover { background: rgba(255,255,255,0.3); }
+
+/* Main Layout */
+.main-content {
+    margin-top: 80px;
+    padding: 30px;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 30px;
+}
+
+/* Dashboard Cards (Placeholders) */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.card {
+    background: var(--white);
+    padding: 20px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.card h3 {
+    margin-bottom: 15px;
+    color: var(--text-dark);
+    border-bottom: 2px solid var(--bg-light);
+    padding-bottom: 10px;
+}
+
+.chart-placeholder {
+    height: 150px;
+    background-color: #e0f2f1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-dark);
+    border: 2px dashed var(--primary-color);
+    border-radius: var(--radius);
+}
+
+/* Actions Toolbar */
+.actions-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.search-box {
+    display: flex;
+    gap: 10px;
+}
+
+.search-box input, .search-box select {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: var(--radius);
+}
+
+.search-box button {
+    background: var(--primary-color);
+    color: var(--white);
+    border: none;
+    padding: 10px 20px;
+    border-radius: var(--radius);
+    cursor: pointer;
+}
+
+/* Table Styles */
+.table-container {
+    background: var(--white);
+    padding: 20px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow-x: auto;
+}
 
 .admin-table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 20px;
 }
 
 .admin-table th, .admin-table td {
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: center;
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
 }
 
 .admin-table th {
-    background-color: #8DC26F;
-    color: #fff;
+    background-color: #f8f9fa;
+    color: var(--primary-dark);
+    font-weight: 600;
 }
 
-.admin-table tr:nth-child(even) {
-    background-color: #f9f9f9;
-}
+.admin-table tr:hover { background-color: #fafafa; }
 
-.admin-table tr:hover {
-    background-color: #f1f1f1;
-}
-
-
-.btn {
-    padding: 6px 10px;
-    border: none;
-    border-radius: 4px;
-    color: #fff;
-    cursor: pointer;
-    font-size: 14px;
-}
-
-.btn.edit {
-    background-color: #e0f7f4;
-}
-
-.btn.edit:hover {
-    background-color: #005c00;
-}
-
-.btn.delete {
-    background-color: #d9534f;
-}
-
-.btn.delete:hover {
-    background-color: #c9302c;
-}
-.btn.add {
-    background-color: #5cb85c;
-}
-
-.btn.add:hover {
-    background-color: #4cae4c;
-}
-
-
-.add-insurance-form {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px 20px;
-    background-color: #f9f9f9;
-    padding: 20px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.add-insurance-form label {
+.badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
     font-weight: bold;
-    margin-bottom: 5px;
+}
+.badge-car { background-color: #e3f2fd; color: #1565c0; }
+.badge-moto { background-color: #fff3e0; color: #ef6c00; }
+
+.btn-delete {
+    background: var(--danger);
+    color: var(--white);
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
 }
 
-.add-insurance-form input {
-    padding: 8px;
-    border: 1px solid #ccc;
+/* Pagination */
+.pagination {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+}
+
+.pagination a {
+    padding: 8px 12px;
+    background: var(--white);
+    border: 1px solid #ddd;
+    text-decoration: none;
+    color: var(--text-dark);
     border-radius: 4px;
-    width: 100%;
+}
+
+.pagination a.active {
+    background: var(--primary-color);
+    color: var(--white);
+    border-color: var(--primary-color);
+}
+
+/* Form Styles */
+.form-section {
+    background: var(--white);
+    padding: 30px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
     font-size: 14px;
 }
 
-.add-insurance-form button {
-    grid-column: span 2;
+.form-group input, .form-group select {
+    width: 100%;
     padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: var(--radius);
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus, .form-group select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.btn-add {
+    background: var(--success);
+    color: var(--white);
+    border: none;
+    padding: 12px 30px;
+    border-radius: var(--radius);
+    cursor: pointer;
     font-size: 16px;
-    border-radius: 4px;
+    margin-top: 20px;
+    width: 100%;
+    transition: background 0.3s;
 }
 
-/* Footer */
-.footer {
-    background-color: #f2f2f2;
-    text-align: center;
-    color: #000;
-    padding: 10px;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    font-size: 14px;
-    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+.btn-add:hover { background: #2e7d32; }
+
+/* Messages */
+.message {
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: var(--radius);
 }
+.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+/* Dynamic Fields Visibility */
+.hidden { display: none; }

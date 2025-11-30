@@ -43,8 +43,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $query .= " AND Use_type = :use_type";
             $params[':use_type'] = $use_type;
         }
-        // Jeśli Assistance, nie filtrujemy po typie w bazie (bo baza ma tylko OC/AC)
-        if (!empty($typ_ubezpieczenia) && $typ_ubezpieczenia !== 'Assistance') {
+        if (!empty($typ_ubezpieczenia)) {
             $query .= " AND Insurance_type = :typ_ubezpieczenia";
             $params[':typ_ubezpieczenia'] = $typ_ubezpieczenia;
         }
@@ -66,11 +65,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $finalPrice = $technicalPrice * (1.0 + $companyFactor);
 
             $row['Price'] = $finalPrice;
-
-            if ($typ_ubezpieczenia === 'Assistance') {
-                $row['Insurance_type'] = 'Assistance 24h';
-                $row['Insurance_name'] .= ' Pomoc';
-            }
 
             $search_results[] = $row;
         }
