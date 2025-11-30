@@ -61,7 +61,7 @@ $motoBrands = $motoBrandsStmt->fetchAll(PDO::FETCH_COLUMN);
         <!-- SELECT dla marek samochodów -->
         <div class="field-group" id="car-brand-group">
           <label for="car-brand">Marka samochodu</label>
-          <select id="car-brand" name="brand" required>
+          <select id="car-brand" name="car-brand" required>
             <option value="">Wybierz markę...</option>
             <?php foreach ($carBrands as $brand): ?>
               <option value="<?php echo htmlspecialchars($brand); ?>">
@@ -74,7 +74,7 @@ $motoBrands = $motoBrandsStmt->fetchAll(PDO::FETCH_COLUMN);
         <!-- SELECT dla marek motocykli (ukryty domyślnie) -->
         <div class="field-group" id="moto-brand-group" style="display: none;">
           <label for="moto-brand">Marka motocykla</label>
-          <select id="moto-brand" name="brand">
+          <select id="moto-brand" name="moto-brand">
             <option value="">Wybierz markę...</option>
             <?php foreach ($motoBrands as $brand): ?>
               <option value="<?php echo htmlspecialchars($brand); ?>">
@@ -90,6 +90,7 @@ $motoBrands = $motoBrandsStmt->fetchAll(PDO::FETCH_COLUMN);
             <option value="">Wybierz...</option>
             <option value="OC">OC</option>
             <option value="OC/AC">OC/AC</option>
+            <option value="Assistance">Assistance</option>
           </select>
         </div>
 

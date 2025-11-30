@@ -2,6 +2,7 @@
 # Environment & Secrets
 # ========================================
 .env
+.env*
 .env.local
 .env.*.local
 secrets/
@@ -92,3 +93,4 @@ Desktop.ini
 # IMPLEMENTATION_SUMMARY.md
 # INFRASTRUCTURE_STATUS.md
 # QUICK_START.md
+test_reset.sh
