@@ -222,6 +222,163 @@ TEXT;
     }
 
     /**
+     * Wysyła email z ofertą ubezpieczeniową i załącznikiem PDF
+     *
+     * @param string $toEmail Email odbiorcy
+     * @param string $insuranceName Nazwa ubezpieczyciela (do tematu emaila)
+     * @param string $pdfContent Zawartość PDF jako string (z PdfService)
+     * @param string $pdfFilename Nazwa pliku PDF
+     * @return bool
+     */
+    public function sendOfferEmail(string $toEmail, string $insuranceName, string $pdfContent, string $pdfFilename = 'oferta.pdf'): bool {
+        try {
+            // Walidacja email
+            if (!filter_var($toEmail, FILTER_VALIDATE_EMAIL)) {
+                error_log("Invalid email address: " . $toEmail);
+                return false;
+            }
+
+            // Nadawca
+            $this->mailer->setFrom($this->fromAddress, $this->fromName);
+
+            // Odbiorca
+            $this->mailer->addAddress($toEmail);
+
+            // Temat emaila z nazwą ubezpieczyciela
+            $safeInsuranceName = htmlspecialchars($insuranceName, ENT_QUOTES, 'UTF-8');
+            $this->mailer->Subject = "SkanPolis - Oferta {$safeInsuranceName}";
+
+            // Debug: Sprawdź rozmiar PDF
+            error_log("EmailService: Adding PDF attachment, size: " . strlen($pdfContent) . " bytes, filename: " . $pdfFilename);
+
+            // Załącznik PDF - PHPMailer automatycznie wybierze encoding
+            $this->mailer->addStringAttachment($pdfContent, $pdfFilename);
+
+            // Treść emaila
+            $this->mailer->isHTML(true);
+            $this->mailer->Body = $this->getOfferEmailHTMLBody($insuranceName);
+            $this->mailer->AltBody = $this->getOfferEmailTextBody($insuranceName);
+
+            // Wysyłka
+            $result = $this->mailer->send();
+
+            // Czyszczenie dla następnego użycia
+            $this->mailer->clearAddresses();
+            $this->mailer->clearAttachments();
+
+            return $result;
+
+        } catch (Exception $e) {
+            error_log("Email send error: " . $this->mailer->ErrorInfo);
+            return false;
+        }
+    }
+
+    /**
+     * HTML template dla emaila z ofertą
+     */
+    private function getOfferEmailHTMLBody(string $insuranceName): string {
+        $safeInsuranceName = htmlspecialchars($insuranceName, ENT_QUOTES, 'UTF-8');
+
+        return <<<HTML
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oferta ubezpieczenia - SkanPolis</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background: linear-gradient(135deg, #00897b, #26a69a); color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0;">
+        <h1 style="margin: 0; font-size: 28px;">
+            <span style="color: #e0f7f4;">SKAN</span>POLIS
+        </h1>
+    </div>
+
+    <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 5px 5px;">
+        <h2 style="color: #00897b; margin-top: 0;">Twoja polubiona oferta</h2>
+
+        <p>Witaj,</p>
+
+        <p>Przesyłamy szczegóły wybranej przez Ciebie oferty ubezpieczeniowej od <strong>{$safeInsuranceName}</strong>.</p>
+
+        <div style="background: #e8f5e9; border-left: 4px solid #4caf50; padding: 15px; margin: 20px 0;">
+            <p style="margin: 0; font-size: 14px; color: #2e7d32;">
+                <strong>📎 Dokument PDF</strong>
+            </p>
+            <p style="margin: 10px 0 0 0; font-size: 14px; color: #2e7d32;">
+                W załączniku znajdziesz pełne informacje o ofercie w formacie PDF, który możesz pobrać i zachować.
+            </p>
+        </div>
+
+        <p style="font-size: 14px; color: #666;">
+            Jeśli masz pytania lub chcesz skorzystać z oferty, skontaktuj się bezpośrednio z ubezpieczycielem lub odwiedź naszą stronę.
+        </p>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{$this->getAppUrl()}/html/main.php"
+               style="background: linear-gradient(135deg, #00897b, #26a69a);
+                      color: white;
+                      padding: 12px 30px;
+                      text-decoration: none;
+                      border-radius: 5px;
+                      display: inline-block;
+                      font-weight: bold;">
+                Przeglądaj więcej ofert
+            </a>
+        </div>
+
+        <p style="font-size: 13px; color: #666; margin-top: 30px;">
+            Pozdrawiamy,<br>
+            <strong>Zespół SkanPolis</strong>
+        </p>
+    </div>
+
+    <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #999;">
+        <p>© 2024 SkanPolis. Wszelkie prawa zastrzeżone.</p>
+        <p>To wiadomość automatyczna, nie odpowiadaj na nią.</p>
+    </div>
+</body>
+</html>
+HTML;
+    }
+
+    /**
+     * Text-only template dla emaila z ofertą
+     */
+    private function getOfferEmailTextBody(string $insuranceName): string {
+        $safeInsuranceName = htmlspecialchars($insuranceName, ENT_QUOTES, 'UTF-8');
+        $appUrl = $this->getAppUrl();
+
+        return <<<TEXT
+SKANPOLIS - Twoja polubiona oferta
+
+Witaj,
+
+Przesyłamy szczegóły wybranej przez Ciebie oferty ubezpieczeniowej od {$safeInsuranceName}.
+
+W załączniku znajdziesz pełne informacje o ofercie w formacie PDF, który możesz pobrać i zachować.
+
+Jeśli masz pytania lub chcesz skorzystać z oferty, skontaktuj się bezpośrednio z ubezpieczycielem lub odwiedź naszą stronę:
+{$appUrl}/html/main.php
+
+Pozdrawiamy,
+Zespół SkanPolis
+
+---
+© 2024 SkanPolis. Wszelkie prawa zastrzeżone.
+To wiadomość automatyczna, nie odpowiadaj na nią.
+TEXT;
+    }
+
+    /**
+     * Pomocnicza metoda do pobierania URL aplikacji
+     */
+    private function getAppUrl(): string {
+        return getenv('APP_URL') ?: 'http://localhost:8080';
+    }
+
+    /**
      * Testowa metoda do weryfikacji konfiguracji SMTP
      * NIE używać w produkcji!
      */

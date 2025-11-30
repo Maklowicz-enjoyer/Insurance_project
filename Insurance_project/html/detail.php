@@ -3,6 +3,11 @@
 require_once __DIR__ . '/../scripts/session_check.php';
 require_once __DIR__ . '/../scripts/db_connect.php';
 
+// Generuj CSRF token jeśli nie istnieje
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 $type = $_GET['type'] ?? '';
 
@@ -62,7 +67,11 @@ try {
   </header>
   
   <main>
-    <?php if (isset($_GET['msg']) && $_GET['msg'] == 'added'): ?>
+    <?php if (isset($_SESSION['success_message'])): ?>
+        <div class="alert"><?php echo htmlspecialchars($_SESSION['success_message']); unset($_SESSION['success_message']); ?></div>
+    <?php elseif (isset($_SESSION['error_message'])): ?>
+        <div class="alert" style="background: #f2dede; color: #a94442;"><?php echo htmlspecialchars($_SESSION['error_message']); unset($_SESSION['error_message']); ?></div>
+    <?php elseif (isset($_GET['msg']) && $_GET['msg'] == 'added'): ?>
         <div class="alert">Oferta została dodana do ulubionych!</div>
     <?php elseif (isset($_GET['msg']) && $_GET['msg'] == 'removed'): ?>
         <div class="alert" style="background: #f2dede; color: #a94442;">Oferta usunięta z ulubionych.</div>
@@ -91,12 +100,17 @@ try {
       </div>
 
       <div class="send-option">
-        <button class="btn send-btn" onclick="alert('Funkcja mailowa wkrótce!')">WYŚLIJ NA MAIL-a</button>
-        
+        <form action="../scripts/send_offer_email.php" method="POST" style="display: inline;">
+            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+            <input type="hidden" name="insurance_id" value="<?php echo $id; ?>">
+            <input type="hidden" name="insurance_type" value="<?php echo $type; ?>">
+            <button type="submit" class="btn send-btn">📧 WYŚLIJ NA MAIL-a</button>
+        </form>
+
         <form action="../scripts/favorite_handler.php" method="POST" style="display: inline;">
             <input type="hidden" name="insurance_id" value="<?php echo $id; ?>">
             <input type="hidden" name="insurance_type" value="<?php echo $type; ?>">
-            
+
             <?php if ($isFavorite): ?>
                 <input type="hidden" name="action" value="remove">
                 <button type="submit" class="btn fav remove">USUŃ Z ULUBIONYCH</button>
