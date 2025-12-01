@@ -133,6 +133,50 @@ try {
     $error_message = "Nie udało się pobrać danych.";
 }
 
+// --- STATYSTYKI: TOP 6 UBEZPIECZYCIELI (Oferty) ---
+try {
+    $statsQuery = "
+        SELECT
+            Insurance_name,
+            COUNT(*) as offer_count,
+            ROUND((COUNT(*) * 100.0 / (SELECT COUNT(*) FROM Insurance)), 2) as percentage
+        FROM Insurance
+        GROUP BY Insurance_name
+        ORDER BY offer_count DESC
+        LIMIT 6
+    ";
+    $statsStmt = $pdo->query($statsQuery);
+    $topInsurers = $statsStmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $topInsurers = [];
+}
+
+// --- STATYSTYKI: TOP 6 UBEZPIECZYCIELI (Wybory Użytkowników) ---
+try {
+    $userChoicesQuery = "
+        SELECT
+            Insurance_name,
+            COUNT(*) as choice_count,
+            ROUND((COUNT(*) * 100.0 / (SELECT COUNT(*) FROM FavoriteInsurance)), 2) as percentage
+        FROM (
+            SELECT ci.Insurance_name
+            FROM FavoriteInsurance f
+            JOIN CarInsurance ci ON f.Insurance_ID = ci.CarInsurance_ID AND f.Insurance_Type = 'CAR'
+            UNION ALL
+            SELECT mi.Insurance_name
+            FROM FavoriteInsurance f
+            JOIN MotorcycleInsurance mi ON f.Insurance_ID = mi.MotorcycleInsurance_ID AND f.Insurance_Type = 'MOTORCYCLE'
+        ) AS combined
+        GROUP BY Insurance_name
+        ORDER BY choice_count DESC
+        LIMIT 6
+    ";
+    $userChoicesStmt = $pdo->query($userChoicesQuery);
+    $topUserChoices = $userChoicesStmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $topUserChoices = [];
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -143,6 +187,8 @@ try {
     <title>Dashboard Administratora - SkanPolis</title>
     <link rel="stylesheet" href="../css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 </head>
 <body>
     
@@ -168,14 +214,14 @@ try {
         <section class="dashboard-grid">
             <div class="card">
                 <h3><i class="fas fa-chart-pie"></i> Statystyki Ofert</h3>
-                <div class="chart-placeholder">
-                    [Wykres: Udział Ubezpieczycieli]
-                    </div>
+                <div class="chart-placeholder" style="height: 345px; padding: 10px;">
+                    <canvas id="topInsurersChart"></canvas>
+                </div>
             </div>
             <div class="card">
                 <h3><i class="fas fa-users"></i> Wybory Użytkowników</h3>
-                <div class="chart-placeholder">
-                    [Wykres: Car vs Moto]
+                <div class="chart-placeholder" style="height: 345px; padding: 10px;">
+                    <canvas id="userChoicesChart"></canvas>
                 </div>
             </div>
             <div class="card">
@@ -387,6 +433,262 @@ try {
 
         // Uruchom na starcie
         window.addEventListener('DOMContentLoaded', toggleFormFields);
+    </script>
+
+    <script>
+        // Wykres Top 6 Ubezpieczycieli
+        window.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('topInsurersChart');
+            if (!ctx) return;
+
+            // Dane z PHP
+            const chartData = <?php echo json_encode($topInsurers); ?>;
+
+            if (chartData.length === 0) {
+                ctx.parentElement.innerHTML = '<p style="text-align:center; color: #666;">Brak danych do wyświetlenia</p>';
+                return;
+            }
+
+            const labels = chartData.map(item => item.Insurance_name);
+            const data = chartData.map(item => parseFloat(item.percentage));
+            const counts = chartData.map(item => parseInt(item.offer_count));
+
+            // Kolory dla słupków (gradient niebieski)
+            const colors = [
+                'rgba(54, 162, 235, 0.8)',
+                'rgba(75, 192, 192, 0.8)',
+                'rgba(153, 102, 255, 0.8)',
+                'rgba(255, 159, 64, 0.8)',
+                'rgba(255, 99, 132, 0.8)',
+                'rgba(201, 203, 207, 0.8)'
+            ];
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Udział w ofercie (%)',
+                        data: data,
+                        backgroundColor: colors.slice(0, data.length),
+                        borderColor: colors.slice(0, data.length).map(c => c.replace('0.8', '1')),
+                        borderWidth: 2,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 30,
+                            bottom: 10,
+                            left: 10,
+                            right: 10
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 13
+                            },
+                            padding: 12,
+                            callbacks: {
+                                label: function(context) {
+                                    const index = context.dataIndex;
+                                    return `${context.parsed.y}% (${counts[index]} ofert)`;
+                                }
+                            }
+                        },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: function(value) {
+                                return value + '%';
+                            },
+                            font: {
+                                weight: 'bold',
+                                size: 16
+                            },
+                            color: '#2c3e50',
+                            offset: 4
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                },
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Procent ofert',
+                                font: {
+                                    size: 13,
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Ubezpieczyciel',
+                                font: {
+                                    size: 13,
+                                    weight: 'bold'
+                                }
+                            }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        });
+
+        // Wykres Wybory Użytkowników (Top 6)
+        window.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('userChoicesChart');
+            if (!ctx) return;
+
+            // Dane z PHP
+            const chartData = <?php echo json_encode($topUserChoices); ?>;
+
+            if (chartData.length === 0) {
+                ctx.parentElement.innerHTML = '<p style="text-align:center; color: #666;">Brak danych do wyświetlenia<br><small>Użytkownicy nie wybrali jeszcze żadnych ofert</small></p>';
+                return;
+            }
+
+            const labels = chartData.map(item => item.Insurance_name);
+            const data = chartData.map(item => parseFloat(item.percentage));
+            const counts = chartData.map(item => parseInt(item.choice_count));
+
+            // Kolory dla słupków (gradient zielony - popularne wybory)
+            const colors = [
+                'rgba(75, 192, 192, 0.8)',
+                'rgba(54, 162, 235, 0.8)',
+                'rgba(153, 102, 255, 0.8)',
+                'rgba(255, 206, 86, 0.8)',
+                'rgba(255, 159, 64, 0.8)',
+                'rgba(255, 99, 132, 0.8)'
+            ];
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Wybory użytkowników (%)',
+                        data: data,
+                        backgroundColor: colors.slice(0, data.length),
+                        borderColor: colors.slice(0, data.length).map(c => c.replace('0.8', '1')),
+                        borderWidth: 2,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 30,
+                            bottom: 10,
+                            left: 10,
+                            right: 10
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 13
+                            },
+                            padding: 12,
+                            callbacks: {
+                                label: function(context) {
+                                    const index = context.dataIndex;
+                                    return `${context.parsed.y}% (${counts[index]} wyborów)`;
+                                }
+                            }
+                        },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: function(value) {
+                                return value + '%';
+                            },
+                            font: {
+                                weight: 'bold',
+                                size: 16
+                            },
+                            color: '#2c3e50',
+                            offset: 4
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                },
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Procent wyborów',
+                                font: {
+                                    size: 13,
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Ubezpieczyciel',
+                                font: {
+                                    size: 13,
+                                    weight: 'bold'
+                                }
+                            }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        });
     </script>
 </body>
 </html>
