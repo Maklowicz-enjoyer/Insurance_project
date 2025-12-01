@@ -292,6 +292,108 @@ select {
     margin-left: auto;
     margin-right: auto;
   }
+  /* Historia wyszukiwań */
+  .search-history {
+    max-width: 900px;
+    margin: 20px auto;
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .history-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #00897b;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .history-items {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .history-item {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s;
+  }
+
+  .history-item:hover {
+    box-shadow: 0 2px 12px rgba(0, 137, 123, 0.15);
+    border-color: #00897b;
+    transform: translateY(-2px);
+  }
+
+  .history-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .history-badge {
+    font-size: 14px;
+    font-weight: 600;
+    color: #00897b;
+    display: inline-block;
+  }
+
+  .history-details {
+    font-size: 14px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .history-details strong {
+    color: #00897b;
+  }
+
+  .separator {
+    color: #bbb;
+  }
+
+  .history-date {
+    font-size: 12px;
+    color: #999;
+  }
+
+  .btn-use-search {
+    background: linear-gradient(135deg, #00897b, #26a69a);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+
+  .btn-use-search:hover {
+    background: linear-gradient(135deg, #00796b, #00897b);
+    box-shadow: 0 4px 12px rgba(0, 137, 123, 0.3);
+    transform: translateY(-2px);
+  }
+
+  .btn-use-search:active {
+    transform: translateY(0);
+  }
+
   .footer {
     background-color: #f2f2f2;
     text-align: center;
@@ -304,4 +406,3 @@ select {
     font-size: 14px;
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
 }
-  

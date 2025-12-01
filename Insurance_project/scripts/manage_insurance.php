@@ -5,6 +5,7 @@ error_reporting(E_ALL);
 
 require 'db_connect.php';
 require_once 'InsuranceCalculator.php';
+require_once 'session_check.php';
 
 global $pdo;
 $search_results = [];
@@ -79,6 +80,40 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         usort($search_results, function($a, $b) {
             return $a['Price'] <=> $b['Price'];
         });
+
+        // Zapisz wyszukiwanie do historii
+        if (isset($_SESSION['user_id'])) {
+            try {
+                $saveSearchStmt = $pdo->prepare("
+                    INSERT INTO SearchHistory
+                    (Users_ID, Vehicle_Type, Brand_Name, Body_Type, Production_Year,
+                     DOB, Insurance_Start_Date, License_Date, Insurance_type, Use_type,
+                     Planned_mileage, Last_accident, Engine_Capacity, Fuel_Type)
+                    VALUES
+                    (:user_id, 'CAR', :brand, :body_type, :year,
+                     :dob, :insurance_date, :license_date, :insurance_type, :use_type,
+                     :mileage, :damage, :capacity, :fuel)
+                ");
+
+                $saveSearchStmt->execute([
+                    ':user_id' => $_SESSION['user_id'],
+                    ':brand' => $_POST['car-brand'] ?? null,
+                    ':body_type' => $typ_nadwozia ?: null,
+                    ':year' => $_POST['year'] ?? null,
+                    ':dob' => $_POST['dob'] ?? null,
+                    ':insurance_date' => $_POST['insurance_date'] ?? null,
+                    ':license_date' => $_POST['license_date'] ?? null,
+                    ':insurance_type' => $typ_ubezpieczenia,
+                    ':use_type' => $use_type,
+                    ':mileage' => isset($_POST['mileage']) ? (int)$_POST['mileage'] : null,
+                    ':damage' => isset($_POST['damage']) ? (int)$_POST['damage'] : null,
+                    ':capacity' => isset($_POST['capacity']) ? (int)$_POST['capacity'] : null,
+                    ':fuel' => $_POST['fuel'] ?? null
+                ]);
+            } catch (PDOException $e) {
+                error_log("Failed to save search history: " . $e->getMessage());
+            }
+        }
 
     } catch (PDOException $e) {
         error_log("DB Error: " . $e->getMessage());

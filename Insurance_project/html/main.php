@@ -10,6 +10,23 @@ $carBrands = $carBrandsStmt->fetchAll(PDO::FETCH_COLUMN);
 // Pobierz marki motocykli
 $motoBrandsStmt = $pdo->query("SELECT Brand_Name FROM MotorcycleBrands ORDER BY Brand_Name ASC");
 $motoBrands = $motoBrandsStmt->fetchAll(PDO::FETCH_COLUMN);
+
+// Pobierz ostatnie 3 wyszukiwania użytkownika
+$searchHistory = [];
+if (isset($_SESSION['user_id'])) {
+    try {
+        $historyStmt = $pdo->prepare("
+            SELECT * FROM SearchHistory
+            WHERE Users_ID = :user_id
+            ORDER BY Date_of_search DESC
+            LIMIT 3
+        ");
+        $historyStmt->execute([':user_id' => $_SESSION['user_id']]);
+        $searchHistory = $historyStmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Failed to fetch search history: " . $e->getMessage());
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="pl">
@@ -34,6 +51,46 @@ $motoBrands = $motoBrandsStmt->fetchAll(PDO::FETCH_COLUMN);
 
   <main>
     <h2 class="title">FORMULARZ WYSZUKIWANIA UBEZPIECZENIA</h2>
+
+    <?php if (!empty($searchHistory)): ?>
+    <div class="search-history">
+      <h3 class="history-title">📋 Ostatnie wyszukiwania</h3>
+      <div class="history-items">
+        <?php foreach ($searchHistory as $index => $search): ?>
+          <div class="history-item" data-search-id="<?php echo $search['Search_ID']; ?>">
+            <div class="history-info">
+              <span class="history-badge">
+                <?php echo $search['Vehicle_Type'] === 'CAR' ? '🚗 Auto' : '🏍️ Moto'; ?>
+              </span>
+              <div class="history-details">
+                <strong><?php echo htmlspecialchars($search['Brand_Name'] ?? 'Brak marki'); ?></strong>
+                <?php if ($search['Vehicle_Type'] === 'CAR' && $search['Body_Type']): ?>
+                  <span class="separator">•</span>
+                  <span><?php echo htmlspecialchars($search['Body_Type']); ?></span>
+                <?php endif; ?>
+                <?php if ($search['Production_Year']): ?>
+                  <span class="separator">•</span>
+                  <span><?php echo $search['Production_Year']; ?>r.</span>
+                <?php endif; ?>
+                <span class="separator">•</span>
+                <span><?php echo htmlspecialchars($search['Insurance_type']); ?></span>
+              </div>
+              <small class="history-date">
+                <?php
+                  $date = new DateTime($search['Date_of_search']);
+                  echo $date->format('d.m.Y H:i');
+                ?>
+              </small>
+            </div>
+            <button type="button" class="btn-use-search"
+                    data-search='<?php echo htmlspecialchars(json_encode($search), ENT_QUOTES); ?>'>
+              Szukaj polisy
+            </button>
+          </div>
+        <?php endforeach; ?>
+      </div>
+    </div>
+    <?php endif; ?>
 
     <div class="form-container">
       <div class="vehicle-type-switch">
@@ -264,6 +321,51 @@ $motoBrands = $motoBrandsStmt->fetchAll(PDO::FETCH_COLUMN);
           document.querySelectorAll('.motorcycle-only').forEach(el => {
             el.style.display = 'flex';
           });
+        }
+      });
+    });
+
+    // Obsługa przycisku "Szukaj polisy" z historii
+    document.querySelectorAll('.btn-use-search').forEach(button => {
+      button.addEventListener('click', function() {
+        const searchData = JSON.parse(this.getAttribute('data-search'));
+
+        // Ustaw typ pojazdu
+        const vehicleType = searchData.Vehicle_Type;
+        const switchBtn = document.querySelector(`.switch-btn[data-type="${vehicleType === 'CAR' ? 'car' : 'motorcycle'}"]`);
+        if (switchBtn) {
+          switchBtn.click();
+
+          // Poczekaj na przełączenie formularza
+          setTimeout(() => {
+            // Wypełnij wspólne pola
+            if (searchData.DOB) document.getElementById('dob').value = searchData.DOB;
+            if (searchData.Insurance_Start_Date) document.getElementById('insurance-date').value = searchData.Insurance_Start_Date;
+            if (searchData.License_Date) document.getElementById('license-date').value = searchData.License_Date;
+            if (searchData.Insurance_type) document.getElementById('insurance-type').value = searchData.Insurance_type;
+            if (searchData.Use_type) document.getElementById('usage').value = searchData.Use_type;
+            if (searchData.Production_Year) document.getElementById('year').value = searchData.Production_Year;
+
+            if (vehicleType === 'CAR') {
+              // Pola dla samochodów
+              if (searchData.Brand_Name) document.getElementById('car-brand').value = searchData.Brand_Name;
+              if (searchData.Body_Type) document.getElementById('typ_nadwozia').value = searchData.Body_Type;
+              if (searchData.Engine_Capacity) document.getElementById('capacity').value = searchData.Engine_Capacity;
+              if (searchData.Fuel_Type) document.getElementById('fuel').value = searchData.Fuel_Type;
+              if (searchData.Last_accident !== null) document.getElementById('damage').value = searchData.Last_accident;
+              if (searchData.Planned_mileage) document.getElementById('mileage').value = searchData.Planned_mileage;
+            } else {
+              // Pola dla motocykli
+              if (searchData.Brand_Name) document.getElementById('moto-brand').value = searchData.Brand_Name;
+              if (searchData.Engine_Capacity) document.getElementById('capacity').value = searchData.Engine_Capacity;
+              if (searchData.Power_HP) document.getElementById('power').value = searchData.Power_HP;
+              if (searchData.Motorcycle_Type) document.getElementById('motorcycle-type').value = searchData.Motorcycle_Type;
+              if (searchData.Last_accident !== null) document.getElementById('moto-damage').value = searchData.Last_accident;
+            }
+
+            // Scroll do formularza
+            document.getElementById('insurance-form').scrollIntoView({ behavior: 'smooth' });
+          }, 100);
         }
       });
     });

@@ -50,10 +50,11 @@ class SessionHelper {
      * Zapisz dane użytkownika do Redis po zalogowaniu
      *
      * @param string $email
+     * @param int $userId
      * @param bool $isAdmin
      * @param string $redirectUrl URL gdzie użytkownik ma być przekierowany
      */
-    public function saveUserSession($email, $isAdmin, $redirectUrl = null) {
+    public function saveUserSession($email, $userId, $isAdmin, $redirectUrl = null) {
         if (!$this->connect()) {
             return false;
         }
@@ -69,6 +70,7 @@ class SessionHelper {
 
         $userData = [
             'email' => $email,
+            'user_id' => $userId,
             'is_admin' => $isAdmin,
             'login_time' => time(),
             'last_activity' => time(),
