@@ -1,18 +1,17 @@
 <?php
 // scripts/admin.php
+
 // 1. Bezpieczeństwo sesji
 require_once __DIR__ . '/session_check.php';
+require_once __DIR__ . '/db_connect.php';
 
-// 2. Weryfikacja uprawnień (Security Barrier)
+// 2. Weryfikacja uprawnień
 if (!$GLOBALS['current_user_is_admin']) {
     header("Location: ../html/main.php");
     exit;
 }
 
-// 3. Połączenie z bazą
-include('db_connect.php');
-
-// 4. CSRF Protection (Security)
+// 3. CSRF Protection
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
@@ -31,11 +30,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     // A. Usuwanie rekordu
     if (isset($_POST['action']) && $_POST['action'] === 'delete') {
         $insurance_id = filter_input(INPUT_POST, 'insurance_id', FILTER_VALIDATE_INT);
-        $category = $_POST['vehicle_category']; // CAR lub MOTORCYCLE
+        $category = $_POST['vehicle_category']; 
 
         if ($insurance_id && in_array($category, ['CAR', 'MOTORCYCLE'])) {
             try {
-                // Musimy usunąć z konkretnej tabeli, nie z VIEW
                 $table = ($category === 'CAR') ? 'CarInsurance' : 'MotorcycleInsurance';
                 $idColumn = ($category === 'CAR') ? 'CarInsurance_ID' : 'MotorcycleInsurance_ID';
                 
@@ -50,17 +48,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     // B. Dodawanie rekordu
     if (isset($_POST['action']) && $_POST['action'] === 'add') {
-        $vehicle_type = $_POST['vehicle_type']; // CAR lub MOTORCYCLE
+        $vehicle_type = $_POST['vehicle_type'];
         
-        // Wspólne pola
         $params = [
             ':insurance_name' => $_POST['insurance_name'],
-            ':insurance_type' => $_POST['insurance_type'], // OC, AC, OC/AC
-            ':use_type' => $_POST['use_type'], // PRYWATNIE / LEASING
+            ':insurance_type' => $_POST['insurance_type'],
+            ':use_type' => $_POST['use_type'],
             ':license_date' => $_POST['license_release_date'],
             ':price' => $_POST['price'],
-            ':user_id' => 1, // Domyślnie przypisujemy do admina lub systemowego usera
-            ':vehicle_id' => ($vehicle_type === 'CAR') ? 1 : 2 // Placeholder: w realnym app tu byłby wybór pojazdu
+            ':user_id' => 1,
+            ':vehicle_id' => ($vehicle_type === 'CAR') ? 1 : 2
         ];
 
         try {
@@ -72,7 +69,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $params[':body_type'] = $_POST['body_type'];
                 $params[':mileage'] = $_POST['planned_mileage'];
 
-            } else { // MOTORCYCLE
+            } else { 
                 $query = "INSERT INTO MotorcycleInsurance 
                     (Users_ID, Vehicle_ID, Insurance_name, Insurance_type, Use_type, License_release_date, Engine_capacity, Power_HP, Motorcycle_type, Price) 
                     VALUES (:user_id, :vehicle_id, :insurance_name, :insurance_type, :use_type, :license_date, :engine_capacity, :power_hp, :moto_type, :price)";
@@ -92,17 +89,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 }
 
-// --- OBSŁUGA GET (Wyszukiwanie i Stronicowanie) ---
-
-// Parametry stronicowania
+// --- OBSŁUGA GET (Wyszukiwanie i Stronicowanie tabeli) ---
 $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 15;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
-
-// Parametry wyszukiwania
 $search = $_GET['search'] ?? '';
 
-// Budowanie zapytania
 $query = "SELECT * FROM Insurance WHERE 1=1";
 $countQuery = "SELECT COUNT(*) FROM Insurance WHERE 1=1";
 $queryParams = [];
@@ -114,69 +106,20 @@ if (!empty($search)) {
     $queryParams[':search'] = "%$search%";
 }
 
-// Sortowanie i limit
 $query .= " ORDER BY created_at DESC LIMIT $limit OFFSET $offset";
 
 try {
-    // Pobranie rekordów
     $stmt = $pdo->prepare($query);
     $stmt->execute($queryParams);
     $insurances = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Pobranie liczby wszystkich rekordów (do paginacji)
     $stmtCount = $pdo->prepare($countQuery);
     $stmtCount->execute($queryParams);
     $totalRecords = $stmtCount->fetchColumn();
     $totalPages = ceil($totalRecords / $limit);
-
 } catch (PDOException $e) {
     $error_message = "Nie udało się pobrać danych.";
 }
-
-// --- STATYSTYKI: TOP 6 UBEZPIECZYCIELI (Oferty) ---
-try {
-    $statsQuery = "
-        SELECT
-            Insurance_name,
-            COUNT(*) as offer_count,
-            ROUND((COUNT(*) * 100.0 / (SELECT COUNT(*) FROM Insurance)), 2) as percentage
-        FROM Insurance
-        GROUP BY Insurance_name
-        ORDER BY offer_count DESC
-        LIMIT 6
-    ";
-    $statsStmt = $pdo->query($statsQuery);
-    $topInsurers = $statsStmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    $topInsurers = [];
-}
-
-// --- STATYSTYKI: TOP 6 UBEZPIECZYCIELI (Wybory Użytkowników) ---
-try {
-    $userChoicesQuery = "
-        SELECT
-            Insurance_name,
-            COUNT(*) as choice_count,
-            ROUND((COUNT(*) * 100.0 / (SELECT COUNT(*) FROM FavoriteInsurance)), 2) as percentage
-        FROM (
-            SELECT ci.Insurance_name
-            FROM FavoriteInsurance f
-            JOIN CarInsurance ci ON f.Insurance_ID = ci.CarInsurance_ID AND f.Insurance_Type = 'CAR'
-            UNION ALL
-            SELECT mi.Insurance_name
-            FROM FavoriteInsurance f
-            JOIN MotorcycleInsurance mi ON f.Insurance_ID = mi.MotorcycleInsurance_ID AND f.Insurance_Type = 'MOTORCYCLE'
-        ) AS combined
-        GROUP BY Insurance_name
-        ORDER BY choice_count DESC
-        LIMIT 6
-    ";
-    $userChoicesStmt = $pdo->query($userChoicesQuery);
-    $topUserChoices = $userChoicesStmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    $topUserChoices = [];
-}
-
 ?>
 
 <!DOCTYPE html>
@@ -187,8 +130,13 @@ try {
     <title>Dashboard Administratora - SkanPolis</title>
     <link rel="stylesheet" href="../css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/material_green.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/pl.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     
@@ -211,25 +159,72 @@ try {
             <div class="message error"><i class="fas fa-exclamation-circle"></i> <?php echo $error_message; ?></div>
         <?php endif; ?>
 
-        <section class="dashboard-grid">
-            <div class="card">
-                <h3><i class="fas fa-chart-pie"></i> Statystyki Ofert</h3>
-                <div class="chart-placeholder" style="height: 345px; padding: 10px;">
-                    <canvas id="topInsurersChart"></canvas>
-                </div>
+        <section class="dashboard-header" style="margin-bottom: 30px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h2 style="margin: 0; color: #333;">Analityka Biznesowa</h2>
+                <p style="margin: 5px 0 0; color: #777; font-size: 14px;">Przegląd wyników w czasie rzeczywistym</p>
             </div>
-            <div class="card">
-                <h3><i class="fas fa-users"></i> Wybory Użytkowników</h3>
-                <div class="chart-placeholder" style="height: 345px; padding: 10px;">
-                    <canvas id="userChoicesChart"></canvas>
-                </div>
-            </div>
-            <div class="card">
-                <h3><i class="fas fa-database"></i> Szybki Status</h3>
-                <p>Liczba ofert: <strong><?php echo $totalRecords; ?></strong></p>
-                <p>Strona: <strong><?php echo $page; ?> / <?php echo $totalPages; ?></strong></p>
+            
+            <div class="date-filter" style="display: flex; gap: 10px; align-items: center;">
+                <label for="date-range" style="font-weight: bold; color: #555;"><i class="fas fa-calendar-alt"></i> Okres:</label>
+                <input type="text" id="date-range" class="flatpickr-input" placeholder="Wybierz zakres dat" style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; width: 250px;">
             </div>
         </section>
+
+        <div class="kpi-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+            <div class="card kpi-card" style="border-left: 5px solid #00897b; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                <h4 style="margin: 0; color: #777; font-size: 12px; text-transform: uppercase;">Wyszukiwania</h4>
+                <div class="value" id="kpi-searches" style="font-size: 28px; font-weight: bold; color: #333;">...</div>
+                <div class="trend" style="font-size: 12px; color: #00897b;">w wybranym okresie</div>
+            </div>
+            <div class="card kpi-card" style="border-left: 5px solid #ff6f00; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                <h4 style="margin: 0; color: #777; font-size: 12px; text-transform: uppercase;">Polubione Oferty</h4>
+                <div class="value" id="kpi-favorites" style="font-size: 28px; font-weight: bold; color: #333;">...</div>
+                <div class="trend" style="font-size: 12px; color: #ff6f00;">potencjalni klienci</div>
+            </div>
+            <div class="card kpi-card" style="border-left: 5px solid #1976d2; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                <h4 style="margin: 0; color: #777; font-size: 12px; text-transform: uppercase;">Nowi Użytkownicy</h4>
+                <div class="value" id="kpi-users" style="font-size: 28px; font-weight: bold; color: #333;">...</div>
+                <div class="trend" style="font-size: 12px; color: #1976d2;">rejestracje</div>
+            </div>
+            <div class="card kpi-card" style="border-left: 5px solid #8e24aa; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                <h4 style="margin: 0; color: #777; font-size: 12px; text-transform: uppercase;">Współczynnik Konwersji</h4>
+                <div class="value" id="kpi-conversion" style="font-size: 28px; font-weight: bold; color: #333;">...%</div>
+                <div class="trend" style="font-size: 12px; color: #8e24aa;">(Polubienia / Wyszukiwania)</div>
+            </div>
+        </div>
+
+        <div class="charts-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 30px;">
+            <div class="card" style="padding: 20px; height: 400px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                <h3><i class="fas fa-chart-line"></i> Aktywność Użytkowników</h3>
+                <div style="position: relative; height: 320px; width: 100%;">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card" style="padding: 20px; height: 400px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                <h3><i class="fas fa-car"></i> Top 5 Marek</h3>
+                <div style="position: relative; height: 320px; width: 100%;">
+                    <canvas id="brandsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-grid-lower" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+            <div class="card" style="padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                <h3><i class="fas fa-shield-alt"></i> Rodzaje Polis</h3>
+                <div style="position: relative; height: 250px;">
+                    <canvas id="typesChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card" style="padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                <h3><i class="fas fa-motorcycle"></i> Auto vs Moto</h3>
+                <div style="position: relative; height: 250px; display: flex; justify-content: center;">
+                    <canvas id="vehicleSplitChart"></canvas>
+                </div>
+            </div>
+        </div>
 
         <section class="table-section">
             <div class="card">
@@ -273,15 +268,7 @@ try {
                                         </td>
                                         <td><strong><?php echo htmlspecialchars($row['Insurance_name']); ?></strong></td>
                                         <td><?php echo htmlspecialchars($row['Insurance_type']); ?></td>
-                                        <td>
-                                            <?php 
-                                                // Typ_nadwozia w widoku zawiera body_type dla aut lub 'MOTORCYCLE' dla moto
-                                                // Ale w bazie mamy kolumnę Typ_nadwozia dla View.
-                                                // Dla motocykli chcemy pokazać konkretny typ jeśli jest dostępny, ale VIEW w obecnej wersji zwraca 'MOTORCYCLE' w tej kolumnie.
-                                                // W lepszej wersji VIEW można by zmapować 'Motorcycle_type' do tej kolumny.
-                                                echo htmlspecialchars($row['Typ_nadwozia']); 
-                                            ?>
-                                        </td>
+                                        <td><?php echo htmlspecialchars($row['Typ_nadwozia']); ?></td>
                                         <td><?php echo number_format($row['Price'], 2); ?> zł</td>
                                         <td><?php echo htmlspecialchars($row['Use_type']); ?></td>
                                         <td>
@@ -435,260 +422,7 @@ try {
         window.addEventListener('DOMContentLoaded', toggleFormFields);
     </script>
 
-    <script>
-        // Wykres Top 6 Ubezpieczycieli
-        window.addEventListener('DOMContentLoaded', function() {
-            const ctx = document.getElementById('topInsurersChart');
-            if (!ctx) return;
+    <script src="../js/admin_dashboard.js"></script>
 
-            // Dane z PHP
-            const chartData = <?php echo json_encode($topInsurers); ?>;
-
-            if (chartData.length === 0) {
-                ctx.parentElement.innerHTML = '<p style="text-align:center; color: #666;">Brak danych do wyświetlenia</p>';
-                return;
-            }
-
-            const labels = chartData.map(item => item.Insurance_name);
-            const data = chartData.map(item => parseFloat(item.percentage));
-            const counts = chartData.map(item => parseInt(item.offer_count));
-
-            // Kolory dla słupków (gradient niebieski)
-            const colors = [
-                'rgba(54, 162, 235, 0.8)',
-                'rgba(75, 192, 192, 0.8)',
-                'rgba(153, 102, 255, 0.8)',
-                'rgba(255, 159, 64, 0.8)',
-                'rgba(255, 99, 132, 0.8)',
-                'rgba(201, 203, 207, 0.8)'
-            ];
-
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Udział w ofercie (%)',
-                        data: data,
-                        backgroundColor: colors.slice(0, data.length),
-                        borderColor: colors.slice(0, data.length).map(c => c.replace('0.8', '1')),
-                        borderWidth: 2,
-                        borderRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    layout: {
-                        padding: {
-                            top: 30,
-                            bottom: 10,
-                            left: 10,
-                            right: 10
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            titleFont: {
-                                size: 14,
-                                weight: 'bold'
-                            },
-                            bodyFont: {
-                                size: 13
-                            },
-                            padding: 12,
-                            callbacks: {
-                                label: function(context) {
-                                    const index = context.dataIndex;
-                                    return `${context.parsed.y}% (${counts[index]} ofert)`;
-                                }
-                            }
-                        },
-                        datalabels: {
-                            anchor: 'end',
-                            align: 'top',
-                            formatter: function(value) {
-                                return value + '%';
-                            },
-                            font: {
-                                weight: 'bold',
-                                size: 16
-                            },
-                            color: '#2c3e50',
-                            offset: 4
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return value + '%';
-                                },
-                                font: {
-                                    size: 12
-                                }
-                            },
-                            title: {
-                                display: true,
-                                text: 'Procent ofert',
-                                font: {
-                                    size: 13,
-                                    weight: 'bold'
-                                }
-                            }
-                        },
-                        x: {
-                            ticks: {
-                                font: {
-                                    size: 12
-                                }
-                            },
-                            title: {
-                                display: true,
-                                text: 'Ubezpieczyciel',
-                                font: {
-                                    size: 13,
-                                    weight: 'bold'
-                                }
-                            }
-                        }
-                    }
-                },
-                plugins: [ChartDataLabels]
-            });
-        });
-
-        // Wykres Wybory Użytkowników (Top 6)
-        window.addEventListener('DOMContentLoaded', function() {
-            const ctx = document.getElementById('userChoicesChart');
-            if (!ctx) return;
-
-            // Dane z PHP
-            const chartData = <?php echo json_encode($topUserChoices); ?>;
-
-            if (chartData.length === 0) {
-                ctx.parentElement.innerHTML = '<p style="text-align:center; color: #666;">Brak danych do wyświetlenia<br><small>Użytkownicy nie wybrali jeszcze żadnych ofert</small></p>';
-                return;
-            }
-
-            const labels = chartData.map(item => item.Insurance_name);
-            const data = chartData.map(item => parseFloat(item.percentage));
-            const counts = chartData.map(item => parseInt(item.choice_count));
-
-            // Kolory dla słupków (gradient zielony - popularne wybory)
-            const colors = [
-                'rgba(75, 192, 192, 0.8)',
-                'rgba(54, 162, 235, 0.8)',
-                'rgba(153, 102, 255, 0.8)',
-                'rgba(255, 206, 86, 0.8)',
-                'rgba(255, 159, 64, 0.8)',
-                'rgba(255, 99, 132, 0.8)'
-            ];
-
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Wybory użytkowników (%)',
-                        data: data,
-                        backgroundColor: colors.slice(0, data.length),
-                        borderColor: colors.slice(0, data.length).map(c => c.replace('0.8', '1')),
-                        borderWidth: 2,
-                        borderRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    layout: {
-                        padding: {
-                            top: 30,
-                            bottom: 10,
-                            left: 10,
-                            right: 10
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            titleFont: {
-                                size: 14,
-                                weight: 'bold'
-                            },
-                            bodyFont: {
-                                size: 13
-                            },
-                            padding: 12,
-                            callbacks: {
-                                label: function(context) {
-                                    const index = context.dataIndex;
-                                    return `${context.parsed.y}% (${counts[index]} wyborów)`;
-                                }
-                            }
-                        },
-                        datalabels: {
-                            anchor: 'end',
-                            align: 'top',
-                            formatter: function(value) {
-                                return value + '%';
-                            },
-                            font: {
-                                weight: 'bold',
-                                size: 16
-                            },
-                            color: '#2c3e50',
-                            offset: 4
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return value + '%';
-                                },
-                                font: {
-                                    size: 12
-                                }
-                            },
-                            title: {
-                                display: true,
-                                text: 'Procent wyborów',
-                                font: {
-                                    size: 13,
-                                    weight: 'bold'
-                                }
-                            }
-                        },
-                        x: {
-                            ticks: {
-                                font: {
-                                    size: 12
-                                }
-                            },
-                            title: {
-                                display: true,
-                                text: 'Ubezpieczyciel',
-                                font: {
-                                    size: 13,
-                                    weight: 'bold'
-                                }
-                            }
-                        }
-                    }
-                },
-                plugins: [ChartDataLabels]
-            });
-        });
-    </script>
 </body>
 </html>
