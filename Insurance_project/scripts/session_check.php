@@ -12,7 +12,22 @@
 
 // Start session if not started
 if (session_status() === PHP_SESSION_NONE) {
+    // Konfiguracja cookie sesyjnego
+    session_set_cookie_params([
+        'lifetime' => 3600,        // 1 godzina
+        'path' => '/',
+        'domain' => '',            // Obecna domena
+        'secure' => false,         // HTTP OK (dla local dev)
+        'httponly' => true,        // Blokada JavaScript
+        'samesite' => 'Lax'        // CSRF protection (Lax pozwala na POST z tej samej domeny)
+    ]);
+
     session_start();
+
+    // Debug: loguj session ID dla diagnostyki
+    if (isset($_POST) && !empty($_POST)) {
+        error_log("POST request to " . $_SERVER['REQUEST_URI'] . " with session ID: " . session_id());
+    }
 }
 
 require_once __DIR__ . '/session_helper.php';

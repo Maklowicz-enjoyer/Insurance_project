@@ -9,6 +9,16 @@
  * - A07:2021 - Identification and Authentication Failures: Token expiration
  */
 
+// Konfiguracja cookie sesyjnego (musi być PRZED session_start!)
+session_set_cookie_params([
+    'lifetime' => 3600,        // 1 godzina
+    'path' => '/',
+    'domain' => '',            // Obecna domena
+    'secure' => false,         // HTTP OK (dla local dev)
+    'httponly' => true,        // Blokada JavaScript
+    'samesite' => 'Lax'        // CSRF protection
+]);
+
 session_start();
 ob_start();
 

@@ -26,23 +26,52 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $use_type = $_POST['use_type'] ?? '';
     $typ_ubezpieczenia = $_POST['typ_ubezpieczenia'] ?? '';
 
-    // Dane do kalkulatora ceny
+    // Dane do kalkulatora ceny (rozszerzone o opcje dodatkowe)
     $calcData = [
         'dob' => $_POST['dob'] ?? '',
         'license_date' => $_POST['license_date'] ?? '',
         'year' => $_POST['year'] ?? date('Y'),
         'capacity' => $_POST['capacity'] ?? 1600,
         'damage' => $_POST['damage'] ?? 0,
-        'typ_ubezpieczenia' => $typ_ubezpieczenia
+        'typ_ubezpieczenia' => $typ_ubezpieczenia,
+        // Nowe pola dla VehicleRiskClassifier
+        'brand' => $_POST['car-brand'] ?? '',
+        'typ_nadwozia' => $typ_nadwozia,
+        // Opcje dodatkowe
+        'assistance' => $_POST['assistance'] ?? 'NONE',
+        'accident_cover' => isset($_POST['accident_cover']) ? 1 : 0,
+        'discount_protection' => isset($_POST['discount_protection']) ? 1 : 0
     ];
 
     try {
-        $query = "SELECT * FROM Insurance WHERE Vehicle_Category = 'CAR'";
+        // Używamy bezpośrednio CarInsurance zamiast VIEW (problem z collation w VIEW)
+        $query = "SELECT
+            CarInsurance_ID as Insurance_ID,
+            Insurance_name,
+            Insurance_type,
+            Use_type,
+            License_release_date,
+            Planned_mileage,
+            Body_type,
+            Price,
+            'CAR' as Vehicle_Category,
+            Users_ID,
+            Vehicle_ID,
+            created_at,
+            updated_at,
+            Assistance_level,
+            Accident_cover,
+            Discount_protection,
+            Assistance_cost,
+            Accident_cover_cost,
+            Discount_protection_cost,
+            Base_premium
+        FROM CarInsurance WHERE 1=1";
         $params = [];
 
         // Filtrowanie ofert w bazie
         if (!empty($typ_nadwozia)) {
-            $query .= " AND Typ_nadwozia = :typ_nadwozia";
+            $query .= " AND Body_type = :typ_nadwozia";
             $params[':typ_nadwozia'] = $typ_nadwozia;
         }
         if (!empty($use_type)) {
@@ -60,18 +89,27 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $stmt->execute($params);
         $db_results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Przeliczanie cen przez InsuranceCalculator
+        // Przeliczanie cen przez InsuranceCalculator (nowa wersja z breakdown)
         $calculator = new InsuranceCalculator();
 
         foreach ($db_results as $row) {
-            $technicalPrice = $calculator->calculatePremium($calcData, 'CAR');
-            
-            // Różnicowanie cen per firma
-            $companyFactor = (crc32($row['Insurance_name']) % 20) / 100; 
-            $finalPrice = $technicalPrice * (1.0 + $companyFactor);
+            $priceResult = $calculator->calculatePremiumWithBreakdown($calcData, 'CAR');
+
+            // Różnicowanie cen per firma + element losowości (każde wyszukiwanie = nowe ceny!)
+            // Czynnik bazowy firmy (stabilny)
+            $companyBaseFactor = (crc32($row['Insurance_name']) % 15) / 100; // 0-15%
+            // Element losowy (zmienia się przy każdym wyszukiwaniu)
+            $randomFactor = (mt_rand(-10, 10) / 100); // -10% do +10%
+            $finalPrice = $priceResult['total_price'] * (1.0 + $companyBaseFactor + $randomFactor);
 
             $row['Price'] = $finalPrice;
-
+            $row['Base_premium'] = $priceResult['breakdown']['base_premium'];
+            $row['Assistance_level'] = $priceResult['breakdown']['assistance']['level'];
+            $row['Assistance_cost'] = $priceResult['breakdown']['assistance']['cost'];
+            $row['Accident_cover'] = $priceResult['breakdown']['accident_cover']['enabled'] ? 1 : 0;
+            $row['Accident_cover_cost'] = $priceResult['breakdown']['accident_cover']['cost'];
+            $row['Discount_protection'] = $priceResult['breakdown']['discount_protection']['enabled'] ? 1 : 0;
+            $row['Discount_protection_cost'] = $priceResult['breakdown']['discount_protection']['cost'];
 
             $search_results[] = $row;
         }
@@ -81,6 +119,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             return $a['Price'] <=> $b['Price'];
         });
 
+        // Zapisz parametry wyszukiwania do sesji (dla detail.php)
+        $_SESSION['last_search_params'] = $calcData;
+
         // Zapisz wyszukiwanie do historii
         if (isset($_SESSION['user_id'])) {
             try {
@@ -88,11 +129,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     INSERT INTO SearchHistory
                     (Users_ID, Vehicle_Type, Brand_Name, Body_Type, Production_Year,
                      DOB, Insurance_Start_Date, License_Date, Insurance_type, Use_type,
-                     Planned_mileage, Last_accident, Engine_Capacity, Fuel_Type)
+                     Planned_mileage, Last_accident, Engine_Capacity, Fuel_Type,
+                     Assistance_level, Accident_cover, Discount_protection)
                     VALUES
                     (:user_id, 'CAR', :brand, :body_type, :year,
                      :dob, :insurance_date, :license_date, :insurance_type, :use_type,
-                     :mileage, :damage, :capacity, :fuel)
+                     :mileage, :damage, :capacity, :fuel,
+                     :assistance, :accident_cover, :discount_protection)
                 ");
 
                 $saveSearchStmt->execute([
@@ -108,7 +151,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     ':mileage' => isset($_POST['mileage']) ? (int)$_POST['mileage'] : null,
                     ':damage' => isset($_POST['damage']) ? (int)$_POST['damage'] : null,
                     ':capacity' => isset($_POST['capacity']) ? (int)$_POST['capacity'] : null,
-                    ':fuel' => $_POST['fuel'] ?? null
+                    ':fuel' => $_POST['fuel'] ?? null,
+                    ':assistance' => $calcData['assistance'],
+                    ':accident_cover' => $calcData['accident_cover'],
+                    ':discount_protection' => $calcData['discount_protection']
                 ]);
             } catch (PDOException $e) {
                 error_log("Failed to save search history: " . $e->getMessage());
