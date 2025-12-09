@@ -35,17 +35,37 @@ try {
         die("Nieprawidłowe dane oferty.");
     }
 
+    // 3. Pobierz parametry wyszukiwania z sesji (jeśli dostępne)
+    $searchParams = $_SESSION['last_search_params'] ?? [];
+
     // 3. Obsługa akcji na tabeli FavoriteInsurance
     if ($action === 'add') {
-        // Używamy INSERT IGNORE, żeby nie było błędów przy duplikatach
-        $sql = "INSERT IGNORE INTO FavoriteInsurance (Users_ID, Insurance_ID, Insurance_Type) VALUES (:uid, :iid, :itype)";
+        // Przygotuj dane do zapisania (z parametrami wyszukiwania)
+        $sql = "INSERT IGNORE INTO FavoriteInsurance
+                (Users_ID, Insurance_ID, Insurance_Type, Brand, Body_type, Production_year,
+                 Engine_capacity, DOB, License_date, Damage_free_years,
+                 Assistance_level, Accident_cover, Discount_protection)
+                VALUES (:uid, :iid, :itype, :brand, :body_type, :year,
+                        :capacity, :dob, :license_date, :damage,
+                        :assistance, :accident_cover, :discount_protection)";
+
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
             ':uid' => $userId,
             ':iid' => $insuranceId,
-            ':itype' => $insuranceType
+            ':itype' => $insuranceType,
+            ':brand' => $searchParams['brand'] ?? null,
+            ':body_type' => $searchParams['typ_nadwozia'] ?? null,
+            ':year' => $searchParams['year'] ?? null,
+            ':capacity' => $searchParams['capacity'] ?? null,
+            ':dob' => $searchParams['dob'] ?? null,
+            ':license_date' => $searchParams['license_date'] ?? null,
+            ':damage' => $searchParams['damage'] ?? 0,
+            ':assistance' => $searchParams['assistance'] ?? 'NONE',
+            ':accident_cover' => $searchParams['accident_cover'] ?? 0,
+            ':discount_protection' => $searchParams['discount_protection'] ?? 0
         ]);
-        
+
         header("Location: ../html/detail.php?id=$insuranceId&type=$insuranceType&msg=added");
 
     } elseif ($action === 'remove') {

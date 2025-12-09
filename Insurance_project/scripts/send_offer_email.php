@@ -21,6 +21,7 @@ require_once __DIR__ . '/db_connect.php';
 // 3. Serwisy
 require_once __DIR__ . '/EmailService.php';
 require_once __DIR__ . '/PdfService.php';
+require_once __DIR__ . '/InsuranceCalculator.php';
 
 // 4. CSRF Protection
 if (empty($_SESSION['csrf_token'])) {
@@ -59,20 +60,96 @@ try {
         throw new Exception("Nie znaleziono użytkownika.");
     }
 
-    // 2. Pobierz szczegóły oferty z VIEW Insurance
+    // 2. Pobierz szczegóły oferty z FavoriteInsurance (z parametrami wyszukiwania)
     $offerStmt = $pdo->prepare("
-        SELECT *
-        FROM Insurance
-        WHERE Insurance_ID = :id AND Vehicle_Category = :type
+        SELECT
+            f.Brand,
+            f.Body_type as Fav_Body_type,
+            f.Production_year,
+            f.Engine_capacity,
+            f.DOB,
+            f.License_date,
+            f.Damage_free_years,
+            f.Assistance_level,
+            f.Accident_cover,
+            f.Discount_protection,
+            COALESCE(c.Insurance_name, m.Insurance_name) as Insurance_name,
+            COALESCE(c.Insurance_type, m.Insurance_type) as Insurance_type,
+            COALESCE(c.Use_type, m.Use_type) as Use_type,
+            COALESCE(c.License_release_date, m.License_release_date) as License_release_date,
+            COALESCE(c.Body_type, m.Motorcycle_type, 'Nieznany') as Body_type
+        FROM FavoriteInsurance f
+        LEFT JOIN CarInsurance c
+            ON f.Insurance_ID = c.CarInsurance_ID AND f.Insurance_Type = 'CAR'
+        LEFT JOIN MotorcycleInsurance m
+            ON f.Insurance_ID = m.MotorcycleInsurance_ID AND f.Insurance_Type = 'MOTORCYCLE'
+        WHERE f.Users_ID = :user_id AND f.Insurance_ID = :id AND f.Insurance_Type = :type
     ");
-    $offerStmt->execute([':id' => $insuranceId, ':type' => $insuranceType]);
+    $offerStmt->execute([
+        ':user_id' => $userData['Users_ID'],
+        ':id' => $insuranceId,
+        ':type' => $insuranceType
+    ]);
     $offer = $offerStmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$offer) {
-        throw new Exception("Oferta nie istnieje.");
+        // Fallback: spróbuj pobrać z VIEW Insurance (jeśli nie w ulubionych)
+        $offerStmt = $pdo->prepare("
+            SELECT * FROM Insurance
+            WHERE Insurance_ID = :id AND Vehicle_Category = :type
+        ");
+        $offerStmt->execute([':id' => $insuranceId, ':type' => $insuranceType]);
+        $offer = $offerStmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$offer) {
+            throw new Exception("Oferta nie istnieje.");
+        }
+
+        // Użyj parametrów z sesji jeśli dostępne
+        $searchParams = $_SESSION['last_search_params'] ?? [];
+        $offer['Brand'] = $searchParams['brand'] ?? null;
+        $offer['Fav_Body_type'] = $searchParams['typ_nadwozia'] ?? null;
+        $offer['Production_year'] = $searchParams['year'] ?? null;
+        $offer['Engine_capacity'] = $searchParams['capacity'] ?? 1600;
+        $offer['DOB'] = $searchParams['dob'] ?? null;
+        $offer['License_date'] = $searchParams['license_date'] ?? null;
+        $offer['Damage_free_years'] = $searchParams['damage'] ?? 0;
+        $offer['Assistance_level'] = $searchParams['assistance'] ?? 'NONE';
+        $offer['Accident_cover'] = $searchParams['accident_cover'] ?? 0;
+        $offer['Discount_protection'] = $searchParams['discount_protection'] ?? 0;
     }
 
-    // 3. Wygeneruj PDF
+    // 3. Przelicz cenę dynamicznie
+    if ($offer['Brand'] && $offer['Production_year']) {
+        $calculator = new InsuranceCalculator();
+        $calcData = [
+            'dob' => $offer['DOB'] ?? '',
+            'license_date' => $offer['License_date'] ?? '',
+            'year' => $offer['Production_year'],
+            'capacity' => $offer['Engine_capacity'] ?? 1600,
+            'damage' => $offer['Damage_free_years'] ?? 0,
+            'typ_ubezpieczenia' => $offer['Insurance_type'] ?? 'OC',
+            'brand' => $offer['Brand'],
+            'typ_nadwozia' => $offer['Fav_Body_type'] ?? $offer['Body_type'],
+            'assistance' => $offer['Assistance_level'] ?? 'NONE',
+            'accident_cover' => $offer['Accident_cover'] ?? 0,
+            'discount_protection' => $offer['Discount_protection'] ?? 0
+        ];
+
+        $priceResult = $calculator->calculatePremiumWithBreakdown($calcData, $insuranceType);
+
+        // Różnicowanie cen per firma
+        $companyFactor = (crc32($offer['Insurance_name']) % 20) / 100;
+        $finalPrice = $priceResult['total_price'] * (1.0 + $companyFactor);
+
+        $offer['Price'] = $finalPrice;
+        $offer['price_breakdown'] = $priceResult['breakdown'];
+    } else {
+        $offer['Price'] = 0;
+        $offer['price_breakdown'] = null;
+    }
+
+    // 4. Wygeneruj PDF
     $pdfService = new PdfService();
     $pdfContent = $pdfService->generateOfferPdf($offer, $userData);
 

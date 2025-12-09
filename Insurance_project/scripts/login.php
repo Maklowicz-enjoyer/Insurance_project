@@ -1,5 +1,15 @@
 <?php
 // Start session and output buffering
+// Konfiguracja cookie sesyjnego (musi być PRZED session_start!)
+session_set_cookie_params([
+    'lifetime' => 3600,        // 1 godzina
+    'path' => '/',
+    'domain' => '',            // Obecna domena
+    'secure' => false,         // HTTP OK (dla local dev)
+    'httponly' => true,        // Blokada JavaScript
+    'samesite' => 'Lax'        // CSRF protection (Lax pozwala na POST z tej samej domeny)
+]);
+
 session_start();
 ob_start();
 
@@ -29,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // If no validation errors, check the database
     if (empty($errors)) {
         try {
-            $query = "SELECT haslo, SUser FROM User WHERE email = :email";
+            $query = "SELECT Users_ID, haslo, SUser FROM User WHERE email = :email";
             $stmt = $pdo->prepare($query);
             $stmt->execute(['email' => $email]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -37,7 +47,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($user && password_verify($password, $user['haslo'])) {
                 // Store user info in session
                 $isAdmin = ($user['SUser'] == 1);
+                $userId = $user['Users_ID'];
                 $_SESSION['user_email'] = $email;
+                $_SESSION['user_id'] = $userId;
                 $_SESSION['is_admin'] = $isAdmin;
 
                 // Determine redirect URL
@@ -53,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 // Save extended session data to Redis
-                $sessionHelper->saveUserSession($email, $isAdmin, $redirectUrl);
+                $sessionHelper->saveUserSession($email, $userId, $isAdmin, $redirectUrl);
 
                 // Clear output buffer before redirect
                 ob_end_clean();

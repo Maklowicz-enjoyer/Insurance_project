@@ -4,6 +4,16 @@
  * Wylogowuje użytkownika przez usunięcie sesji z Redis i PHP
  */
 
+// Konfiguracja cookie sesyjnego (musi być PRZED session_start!)
+session_set_cookie_params([
+    'lifetime' => 3600,        // 1 godzina
+    'path' => '/',
+    'domain' => '',            // Obecna domena
+    'secure' => false,         // HTTP OK (dla local dev)
+    'httponly' => true,        // Blokada JavaScript
+    'samesite' => 'Lax'        // CSRF protection
+]);
+
 session_start();
 
 require_once __DIR__ . '/session_helper.php';
