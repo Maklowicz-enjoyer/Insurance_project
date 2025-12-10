@@ -159,17 +159,23 @@ try {
             <div class="message error"><i class="fas fa-exclamation-circle"></i> <?php echo $error_message; ?></div>
         <?php endif; ?>
 
-        <section class="dashboard-header" style="margin-bottom: 30px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <h2 style="margin: 0; color: #333;">Analityka Biznesowa</h2>
-                <p style="margin: 5px 0 0; color: #777; font-size: 14px;">Przegląd wyników w czasie rzeczywistym</p>
-            </div>
-            
-            <div class="date-filter" style="display: flex; gap: 10px; align-items: center;">
-                <label for="date-range" style="font-weight: bold; color: #555;"><i class="fas fa-calendar-alt"></i> Okres:</label>
-                <input type="text" id="date-range" class="flatpickr-input" placeholder="Wybierz zakres dat" style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; width: 250px;">
-            </div>
-        </section>
+        <section class="dashboard-header" style="margin-bottom: 30px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+    <div>
+        <h2 style="margin: 0; color: #333;">Analityka Biznesowa</h2>
+        <p style="margin: 5px 0 0; color: #777; font-size: 14px;">Przegląd wyników w czasie rzeczywistym</p>
+    </div>
+    
+    <div style="display: flex; gap: 15px; align-items: center;">
+        <div class="date-filter" style="display: flex; gap: 10px; align-items: center;">
+            <label for="date-range" style="font-weight: bold; color: #555;"><i class="fas fa-calendar-alt"></i> Okres:</label>
+            <input type="text" id="date-range" class="flatpickr-input" placeholder="Wybierz zakres dat" style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; width: 250px;">
+        </div>
+
+        <button id="export-pdf-btn" style="background: #d32f2f; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.3s;">
+            <i class="fas fa-file-pdf"></i> Pobierz PDF
+        </button>
+    </div>
+</section>
 
         <div class="kpi-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
             <div class="card kpi-card" style="border-left: 5px solid #00897b; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
