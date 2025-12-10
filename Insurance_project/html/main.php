@@ -147,7 +147,6 @@ if (isset($_SESSION['user_id'])) {
             <option value="">Wybierz...</option>
             <option value="OC">OC</option>
             <option value="OC/AC">OC/AC</option>
-            <option value="Assistance">Assistance</option>
           </select>
         </div>
 
@@ -241,6 +240,47 @@ if (isset($_SESSION['user_id'])) {
         </div>
 
         <div class="field-group placeholder motorcycle-only" style="display:none;"></div>
+
+        <!-- ============================================ -->
+        <!-- OPCJE DODATKOWE (dla wszystkich typów) -->
+        <!-- ============================================ -->
+        <div class="section-divider">
+          <h3 class="section-title">Opcje dodatkowe</h3>
+          <p class="section-subtitle">Rozszerz swoją ochronę o dodatkowe usługi</p>
+        </div>
+
+        <div class="field-group">
+          <label for="assistance">Pomoc drogowa (Assistance)</label>
+          <select id="assistance" name="assistance">
+            <option value="NONE">Brak pomocy drogowej</option>
+            <option value="BASIC">Basic - 120 zł/rok (holowanie do 50km)</option>
+            <option value="STANDARD">Standard - 240 zł/rok (holowanie do 200km + auto zastępcze)</option>
+            <option value="PREMIUM">Premium - 480 zł/rok (holowanie bez limitu + pomoc w UE)</option>
+          </select>
+          <small class="field-hint">Pomoc techniczna, holowanie i auto zastępcze w razie awarii</small>
+        </div>
+
+        <div class="field-group checkbox-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="accident_cover" name="accident_cover" value="1">
+            <span class="checkbox-text">
+              <strong>Pokrycie GAP (Accident Cover)</strong> - +15% składki bazowej
+              <br>
+              <small>Ochrona przed stratą wartości pojazdu - różnica między wartością rynkową a kwotą do spłaty (leasing/kredyt)</small>
+            </span>
+          </label>
+        </div>
+
+        <div class="field-group checkbox-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="discount_protection" name="discount_protection" value="1">
+            <span class="checkbox-text">
+              <strong>Ochrona zniżek (Discount Protection)</strong> - +12% składki bazowej
+              <br>
+              <small>Chroni Twój bonus-malus przed utratą po pierwszej kolizji w roku polisowym</small>
+            </span>
+          </label>
+        </div>
 
         <button type="submit" class="search-btn">SZUKAJ POLISY</button>
       </form>

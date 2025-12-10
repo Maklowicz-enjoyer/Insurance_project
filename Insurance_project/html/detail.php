@@ -2,6 +2,7 @@
 // html/detail.php
 require_once __DIR__ . '/../scripts/session_check.php';
 require_once __DIR__ . '/../scripts/db_connect.php';
+require_once __DIR__ . '/../scripts/InsuranceCalculator.php';
 
 // Generuj CSRF token jeśli nie istnieje
 if (empty($_SESSION['csrf_token'])) {
@@ -26,7 +27,23 @@ try {
         die("Oferta nie istnieje.");
     }
 
-    // 2. Sprawdź czy jest w FavoriteInsurance
+    // 2. Przelicz cenę używając parametrów z ostatniego wyszukiwania
+    if (isset($_SESSION['last_search_params'])) {
+        $calculator = new InsuranceCalculator();
+        $calcData = $_SESSION['last_search_params'];
+
+        $priceResult = $calculator->calculatePremiumWithBreakdown($calcData, $type);
+
+        // Różnicowanie cen per firma (ta sama logika co w manage_insurance.php)
+        $companyFactor = (crc32($offer['Insurance_name']) % 20) / 100;
+        $finalPrice = $priceResult['total_price'] * (1.0 + $companyFactor);
+
+        // Nadpisz cenę wyliczoną na bieżąco
+        $offer['Price'] = $finalPrice;
+        $offer['price_breakdown'] = $priceResult['breakdown'];
+    }
+
+    // 3. Sprawdź czy jest w FavoriteInsurance
     $email = $_SESSION['user_email'];
     $userStmt = $pdo->prepare("SELECT Users_ID FROM User WHERE email = :email");
     $userStmt->execute([':email' => $email]);
@@ -89,7 +106,7 @@ try {
           <p>Typ: <strong><?php echo htmlspecialchars($offer['Insurance_type']); ?></strong></p>
           <p>Użytkowanie: <?php echo htmlspecialchars($offer['Use_type']); ?></p>
           <p>Ważne do: <?php echo htmlspecialchars($offer['License_release_date']); ?></p>
-          
+
           <?php if($type === 'CAR'): ?>
              <p>Nadwozie: <?php echo htmlspecialchars($offer['Typ_nadwozia']); ?></p>
              <p>Przebieg: <?php echo htmlspecialchars($offer['Planned_mileage']); ?> km</p>
@@ -97,6 +114,39 @@ try {
              <p>Kategoria: Motocykl</p>
           <?php endif; ?>
         </div>
+
+        <?php if (isset($offer['price_breakdown'])): ?>
+        <h3 style="margin-top: 20px;">SZCZEGÓŁY CENY:</h3>
+        <div class="offer-description" style="background: #f9f9f9; padding: 15px; border-left: 3px solid #00897b;">
+          <p>Składka bazowa (<?php echo htmlspecialchars($offer['Insurance_type']); ?>):
+             <strong><?php echo number_format($offer['price_breakdown']['base_premium'], 2, ',', ' '); ?> zł</strong>
+          </p>
+
+          <?php if ($offer['price_breakdown']['assistance']['cost'] > 0): ?>
+          <p>+ Pomoc drogowa (<?php echo $offer['price_breakdown']['assistance']['level']; ?>):
+             <strong><?php echo number_format($offer['price_breakdown']['assistance']['cost'], 2, ',', ' '); ?> zł</strong>
+          </p>
+          <?php endif; ?>
+
+          <?php if ($offer['price_breakdown']['accident_cover']['enabled']): ?>
+          <p>+ Pokrycie GAP (Accident Cover):
+             <strong><?php echo number_format($offer['price_breakdown']['accident_cover']['cost'], 2, ',', ' '); ?> zł</strong>
+          </p>
+          <?php endif; ?>
+
+          <?php if ($offer['price_breakdown']['discount_protection']['enabled']): ?>
+          <p>+ Ochrona zniżek (Discount Protection):
+             <strong><?php echo number_format($offer['price_breakdown']['discount_protection']['cost'], 2, ',', ' '); ?> zł</strong>
+          </p>
+          <?php endif; ?>
+
+          <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ddd;">
+          <p><strong>SUMA KOŃCOWA: <?php echo number_format($offer['Price'], 2, ',', ' '); ?> zł/rok</strong></p>
+          <p style="color: #666; font-size: 14px;">
+            (<?php echo number_format($offer['Price'] / 12, 2, ',', ' '); ?> zł/miesiąc)
+          </p>
+        </div>
+        <?php endif; ?>
       </div>
 
       <div class="send-option">

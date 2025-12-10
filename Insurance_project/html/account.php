@@ -2,6 +2,7 @@
 // html/account.php
 require_once __DIR__ . '/../scripts/session_check.php';
 require_once __DIR__ . '/../scripts/db_connect.php';
+require_once __DIR__ . '/../scripts/InsuranceCalculator.php';
 
 $email = $_SESSION['user_email'];
 $favorites = [];
@@ -23,19 +24,28 @@ try {
     if ($userId) {
         // Budujemy zapytanie dynamicznie w zależności od filtra
         $query = "
-            SELECT 
-                f.Favorite_ID, 
+            SELECT
+                f.Favorite_ID,
                 f.Insurance_ID,
-                f.Insurance_Type as Fav_Type, 
+                f.Insurance_Type as Fav_Type,
                 f.Added_Date,
+                f.Brand,
+                f.Body_type as Fav_Body_type,
+                f.Production_year,
+                f.Engine_capacity,
+                f.DOB,
+                f.License_date,
+                f.Damage_free_years,
+                f.Assistance_level,
+                f.Accident_cover,
+                f.Discount_protection,
                 COALESCE(c.Insurance_name, m.Insurance_name) as Insurance_name,
                 COALESCE(c.Insurance_type, m.Insurance_type) as Insurance_subtype,
-                COALESCE(c.Body_type, m.Motorcycle_type, 'Nieznany') as Body_type,
-                COALESCE(c.Price, m.Price) as Price
+                COALESCE(c.Body_type, m.Motorcycle_type, 'Nieznany') as Body_type
             FROM FavoriteInsurance f
-            LEFT JOIN CarInsurance c 
+            LEFT JOIN CarInsurance c
                 ON f.Insurance_ID = c.CarInsurance_ID AND f.Insurance_Type = 'CAR'
-            LEFT JOIN MotorcycleInsurance m 
+            LEFT JOIN MotorcycleInsurance m
                 ON f.Insurance_ID = m.MotorcycleInsurance_ID AND f.Insurance_Type = 'MOTORCYCLE'
             WHERE f.Users_ID = :uid
         ";
@@ -57,10 +67,47 @@ try {
 
         $favStmt->execute();
         $favorites = $favStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Przelicz ceny dynamicznie dla każdej ulubionej oferty
+        $calculator = new InsuranceCalculator();
+        foreach ($favorites as &$fav) {
+            // Sprawdź czy mamy zapisane parametry wyszukiwania
+            if ($fav['Brand'] && $fav['Production_year']) {
+                $calcData = [
+                    'dob' => $fav['DOB'] ?? '',
+                    'license_date' => $fav['License_date'] ?? '',
+                    'year' => $fav['Production_year'],
+                    'capacity' => $fav['Engine_capacity'] ?? 1600,
+                    'damage' => $fav['Damage_free_years'] ?? 0,
+                    'typ_ubezpieczenia' => $fav['Insurance_subtype'] ?? 'OC',
+                    'brand' => $fav['Brand'],
+                    'typ_nadwozia' => $fav['Fav_Body_type'] ?? $fav['Body_type'],
+                    'assistance' => $fav['Assistance_level'] ?? 'NONE',
+                    'accident_cover' => $fav['Accident_cover'] ?? 0,
+                    'discount_protection' => $fav['Discount_protection'] ?? 0
+                ];
+
+                $priceResult = $calculator->calculatePremiumWithBreakdown($calcData, $fav['Fav_Type']);
+
+                // Różnicowanie cen per firma (ta sama logika co w manage_insurance.php)
+                $companyFactor = (crc32($fav['Insurance_name']) % 20) / 100;
+                $finalPrice = $priceResult['total_price'] * (1.0 + $companyFactor);
+
+                $fav['Price'] = $finalPrice;
+                $fav['price_breakdown'] = $priceResult['breakdown'];
+            } else {
+                // Fallback: jeśli brak parametrów, ustaw cenę na 0 lub komunikat
+                $fav['Price'] = 0;
+                $fav['price_breakdown'] = null;
+            }
+        }
+        unset($fav); // Zawsze unset referencji po foreach
     }
 
 } catch (PDOException $e) {
     $error_msg = "Błąd SQL: " . $e->getMessage();
+} catch (Exception $e) {
+    $error_msg = "Błąd obliczania ceny: " . $e->getMessage();
 }
 ?>
 <!DOCTYPE html>

@@ -6,23 +6,33 @@
   }
   
   html, body {
-    height: 100%;
+    min-height: 100%;
     font-family: Arial, sans-serif;
     color: #000;
     background-color: #fff;
+    overflow-x: hidden;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
   }
   
   
   .header {
     background: linear-gradient(135deg, #00897b, #26a69a);
     width: 100%;
-    padding: 10px 20px;
+    padding: 15px 20px;
     display: flex;
     position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
     justify-content: space-between;
     align-items: center;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
   }
   
   .header-container {
@@ -77,16 +87,19 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
-    padding-top: 80px;
-    padding-bottom: 60px;
+    padding-top: 100px;  /* Zwiększone z 80px na 100px */
+    padding-bottom: 80px; /* Zwiększone z 60px na 80px */
 }
 
 .title {
     font-size: 24px;
     font-weight: bold;
     margin-bottom: 20px;
+    margin-top: 0;
+    padding-top: 0;
+    text-align: center;
 }
 
 /* ========================================
@@ -394,6 +407,95 @@ select {
     transform: translateY(0);
   }
 
+  /* ============================================ */
+  /* OPCJE DODATKOWE - Sekcja */
+  /* ============================================ */
+
+  .section-divider {
+    grid-column: 1 / -1;
+    margin: 30px 0 20px 0;
+    padding: 20px;
+    background: linear-gradient(135deg, #f0f9f8, #e0f7f4);
+    border-left: 4px solid #00897b;
+    border-radius: 8px;
+  }
+
+  .section-title {
+    color: #00897b;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 5px;
+  }
+
+  .section-subtitle {
+    color: #666;
+    font-size: 14px;
+    margin: 0;
+  }
+
+  /* ============================================ */
+  /* OPCJE DODATKOWE - Checkbox Group */
+  /* ============================================ */
+
+  .checkbox-group {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: flex-start;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    cursor: pointer;
+    padding: 15px;
+    background: #f9f9f9;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    transition: all 0.2s;
+    width: 100%;
+  }
+
+  .checkbox-label:hover {
+    background: #f0f9f8;
+    border-color: #00897b;
+  }
+
+  .checkbox-label input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    margin-top: 2px;
+    accent-color: #00897b;
+  }
+
+  .checkbox-text {
+    flex: 1;
+  }
+
+  .checkbox-text strong {
+    color: #333;
+    font-size: 15px;
+  }
+
+  .checkbox-text small {
+    color: #666;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  /* ============================================ */
+  /* OPCJE DODATKOWE - Field Hint */
+  /* ============================================ */
+
+  .field-hint {
+    display: block;
+    color: #666;
+    font-size: 12px;
+    margin-top: 5px;
+    font-style: italic;
+  }
+
   .footer {
     background-color: #f2f2f2;
     text-align: center;
@@ -405,4 +507,5 @@ select {
     width: 100%;
     font-size: 14px;
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 999;
 }
