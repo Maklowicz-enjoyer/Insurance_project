@@ -4,6 +4,7 @@
 // 1. Bezpieczeństwo sesji
 require_once __DIR__ . '/session_check.php';
 require_once __DIR__ . '/db_connect.php';
+require_once 'InsuranceCalculator.php'; // Dodano do kalkulacji ceny
 
 // 2. Weryfikacja uprawnień
 if (!$GLOBALS['current_user_is_admin']) {
@@ -18,6 +19,19 @@ if (empty($_SESSION['csrf_token'])) {
 
 $success_message = '';
 $error_message = '';
+
+// Pobierz marki samochodów i motocykli dla list wyboru (Wymagane do kalkulacji ryzyka)
+try {
+    $carBrandsStmt = $pdo->query("SELECT Brand_Name FROM CarBrands ORDER BY Brand_Name ASC");
+    $carBrands = $carBrandsStmt->fetchAll(PDO::FETCH_COLUMN);
+
+    $motoBrandsStmt = $pdo->query("SELECT Brand_Name FROM MotorcycleBrands ORDER BY Brand_Name ASC");
+    $motoBrands = $motoBrandsStmt->fetchAll(PDO::FETCH_COLUMN);
+} catch (PDOException $e) {
+    $carBrands = ['Błąd bazy marek'];
+    $motoBrands = ['Błąd bazy marek'];
+    error_log("Błąd pobierania marek: " . $e->getMessage());
+}
 
 // --- OBSŁUGA POST (Dodawanie/Usuwanie) ---
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
@@ -50,41 +64,103 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (isset($_POST['action']) && $_POST['action'] === 'add') {
         $vehicle_type = $_POST['vehicle_type'];
         
+        $calculator = new InsuranceCalculator();
+
+        // 1. Zbieranie Danych Wymaganych do Kalkulacji
+        // Używamy neutralnych/domyślnych danych kierowcy dla ceny bazowej (szablonu oferty)
+        $calcData = [
+            // Dane neutralne kierowcy dla ustalenia bazowej ceny szablonu
+            'dob' => '1985-01-01',                  
+            'license_date' => '2005-01-01',         
+            'damage' => 5,                          
+            'typ_ubezpieczenia' => $_POST['insurance_type'],
+            
+            // Dane pojazdu z formularza
+            'year' => $_POST['year'] ?? date('Y'),
+            'capacity' => $_POST['engine_capacity'] ?? 1600,
+            
+            // Domyślne dla ceny bazowej
+            'assistance' => 'NONE',
+            'accident_cover' => 0,
+            'discount_protection' => 0
+        ];
+
+        // Ustalenie faktycznego typu nadwozia i marki
+        if ($vehicle_type === 'CAR') {
+             $calcData['brand'] = $_POST['car_brand'] ?? 'Toyota';
+             $calcData['typ_nadwozia'] = $_POST['body_type'] ?? 'Sedan';
+        } else {
+             $calcData['brand'] = $_POST['motorcycle_brand'] ?? 'Yamaha';
+             // Typ motocykla jest używany jako Body_type w kalkulatorze ryzyka
+             $calcData['typ_nadwozia'] = $_POST['motorcycle_type'] ?? 'naked'; 
+        }
+        
+        // 2. Kalkulacja bazowej ceny i breakdown
+        $priceResult = $calculator->calculatePremiumWithBreakdown($calcData, $vehicle_type);
+
+        $basePremium = $priceResult['breakdown']['base_premium'];
+        
+        // Dodanie elementu losowego dla różnicowania ofert firm
+        // Cena końcowa = Base Premium (kalkulator) * (1 + Czynnik firmowy 0-25%)
+        $companyFactor = (crc32($_POST['insurance_name']) % 25) / 100; // 0-25%
+        $finalPrice = $basePremium * (1.0 + $companyFactor); 
+
+        // 3. Parametry do INSERT
+        // UWAGA: Users_ID (1) i Vehicle_ID (1 lub 2) są tu zhardkodowane, ponieważ administrator tworzy SZABLON OFERTY.
         $params = [
             ':insurance_name' => $_POST['insurance_name'],
             ':insurance_type' => $_POST['insurance_type'],
             ':use_type' => $_POST['use_type'],
             ':license_date' => $_POST['license_release_date'],
-            ':price' => $_POST['price'],
+            // Wyliczona cena
+            ':price' => round($finalPrice, 2), 
+            ':base_premium' => round($basePremium, 2),
+            // Domyślne/neutralne wartości breakdown (oferta jest bazowa)
+            ':assistance_level' => 'NONE',
+            ':accident_cover' => 0,
+            ':discount_protection' => 0,
+            ':assistance_cost' => 0.00,
+            ':accident_cover_cost' => 0.00,
+            ':discount_protection_cost' => 0.00,
             ':user_id' => 1,
             ':vehicle_id' => ($vehicle_type === 'CAR') ? 1 : 2
         ];
-
+        
         try {
+            // Walidacja, czy cena jest sensowna (zapobiega błędom kalkulatora)
+            if ($finalPrice <= 0) {
+                 throw new Exception("Błąd kalkulacji ceny: Cena jest mniejsza lub równa 0. Sprawdź Markę/Rok/Pojemność.");
+            }
+
             if ($vehicle_type === 'CAR') {
                 $query = "INSERT INTO CarInsurance 
-                    (Users_ID, Vehicle_ID, Insurance_name, Insurance_type, Use_type, License_release_date, Body_type, Planned_mileage, Price) 
-                    VALUES (:user_id, :vehicle_id, :insurance_name, :insurance_type, :use_type, :license_date, :body_type, :mileage, :price)";
+                    (Users_ID, Vehicle_ID, Insurance_name, Insurance_type, Use_type, License_release_date, Body_type, Planned_mileage, Price,
+                     Assistance_level, Accident_cover, Discount_protection, Assistance_cost, Accident_cover_cost, Discount_protection_cost, Base_premium) 
+                    VALUES (:user_id, :vehicle_id, :insurance_name, :insurance_type, :use_type, :license_date, :body_type, :mileage, :price, 
+                     :assistance_level, :accident_cover, :discount_protection, :assistance_cost, :accident_cover_cost, :discount_protection_cost, :base_premium)";
                 
                 $params[':body_type'] = $_POST['body_type'];
-                $params[':mileage'] = $_POST['planned_mileage'];
-
+                $params[':mileage'] = $_POST['planned_mileage'] ?? 15000;
             } else { 
                 $query = "INSERT INTO MotorcycleInsurance 
-                    (Users_ID, Vehicle_ID, Insurance_name, Insurance_type, Use_type, License_release_date, Engine_capacity, Power_HP, Motorcycle_type, Price) 
-                    VALUES (:user_id, :vehicle_id, :insurance_name, :insurance_type, :use_type, :license_date, :engine_capacity, :power_hp, :moto_type, :price)";
+                    (Users_ID, Vehicle_ID, Insurance_name, Insurance_type, Use_type, License_release_date, Engine_capacity, Power_HP, Motorcycle_type, Price,
+                     Assistance_level, Accident_cover, Discount_protection, Assistance_cost, Accident_cover_cost, Discount_protection_cost, Base_premium) 
+                    VALUES (:user_id, :vehicle_id, :insurance_name, :insurance_type, :use_type, :license_date, :engine_capacity, :power_hp, :moto_type, :price,
+                     :assistance_level, :accident_cover, :discount_protection, :assistance_cost, :accident_cover_cost, :discount_protection_cost, :base_premium)";
                 
                 $params[':engine_capacity'] = $_POST['engine_capacity'];
-                $params[':power_hp'] = $_POST['power_hp'];
+                $params[':power_hp'] = $_POST['power_hp'] ?? 75;
                 $params[':moto_type'] = $_POST['motorcycle_type'];
             }
 
             $stmt = $pdo->prepare($query);
             $stmt->execute($params);
-            $success_message = "Nowa oferta ($vehicle_type) dodana pomyślnie!";
+            $success_message = "Nowa oferta ($vehicle_type) dodana pomyślnie! Wyliczona cena: " . number_format($finalPrice, 2, ',', ' ') . " PLN";
 
         } catch (PDOException $e) {
-            $error_message = "Błąd dodawania: " . $e->getMessage();
+            $error_message = "Błąd bazy danych: " . $e->getMessage();
+        } catch (Exception $e) {
+            $error_message = $e->getMessage();
         }
     }
 }
@@ -309,7 +385,7 @@ try {
         </section>
 
         <section class="form-section">
-            <h3><i class="fas fa-plus-circle"></i> Dodaj Nową Ofertę</h3>
+            <h3><i class="fas fa-plus-circle"></i> Dodaj Nową Ofertę (Cena wyliczana)</h3>
             <form method="POST">
                 <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                 <input type="hidden" name="action" value="add">
@@ -349,10 +425,33 @@ try {
                         <label>Data Ważności Oferty:</label>
                         <input type="date" name="license_release_date" required>
                     </div>
+                    
+                    <div class="form-group car-field">
+                        <label>Marka Samochodu:</label>
+                        <select name="car_brand">
+                            <?php foreach ($carBrands as $brand): ?>
+                                <option value="<?php echo htmlspecialchars($brand); ?>"><?php echo htmlspecialchars($brand); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="form-group moto-field hidden">
+                        <label>Marka Motocykla:</label>
+                        <select name="motorcycle_brand">
+                            <?php foreach ($motoBrands as $brand): ?>
+                                <option value="<?php echo htmlspecialchars($brand); ?>"><?php echo htmlspecialchars($brand); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Rok Produkcji:</label>
+                        <input type="number" name="year" min="1990" max="<?php echo date('Y') + 1; ?>" required placeholder="<?php echo date('Y'); ?>" value="<?php echo date('Y') - 5; ?>">
+                    </div>
 
                     <div class="form-group">
-                        <label>Cena (PLN):</label>
-                        <input type="number" step="0.01" name="price" required placeholder="0.00">
+                        <label>Pojemność Silnika (cm³):</label>
+                        <input type="number" name="engine_capacity" required placeholder="np. 1600" value="1600">
                     </div>
 
                     <div class="form-group car-field">
@@ -370,7 +469,7 @@ try {
 
                     <div class="form-group car-field">
                         <label>Planowany Przebieg (km):</label>
-                        <input type="number" name="planned_mileage" placeholder="np. 15000">
+                        <input type="number" name="planned_mileage" placeholder="np. 15000" value="15000">
                     </div>
 
                     <div class="form-group moto-field hidden">
@@ -384,17 +483,12 @@ try {
                     </div>
 
                     <div class="form-group moto-field hidden">
-                        <label>Pojemność (cm³):</label>
-                        <input type="number" name="engine_capacity" placeholder="np. 600">
-                    </div>
-
-                    <div class="form-group moto-field hidden">
                         <label>Moc (KM):</label>
-                        <input type="number" name="power_hp" placeholder="np. 75">
+                        <input type="number" name="power_hp" placeholder="np. 75" value="75">
                     </div>
                 </div>
 
-                <button type="submit" class="btn-add"><i class="fas fa-save"></i> Zapisz Ofertę</button>
+                <button type="submit" class="btn-add"><i class="fas fa-save"></i> Zapisz Ofertę (Cena wyliczana)</button>
             </form>
         </section>
 
@@ -407,20 +501,34 @@ try {
             const carFields = document.querySelectorAll('.car-field');
             const motoFields = document.querySelectorAll('.moto-field');
 
+            // Pobranie kluczowych elementów do ustawienia atrybutów 'required'
+            const carBrandSelect = document.querySelector('[name="car_brand"]');
+            const motoBrandSelect = document.querySelector('[name="motorcycle_brand"]');
+            const bodyTypeSelect = document.querySelector('[name="body_type"]');
+            const engineCapacityInput = document.querySelector('[name="engine_capacity"]');
+
             if (type === 'CAR') {
                 carFields.forEach(el => el.classList.remove('hidden'));
                 motoFields.forEach(el => el.classList.add('hidden'));
                 
-                // Ustaw wymagania dla walidacji HTML5
-                document.querySelector('[name="body_type"]').setAttribute('required', 'required');
-                document.querySelector('[name="engine_capacity"]').removeAttribute('required');
+                // Ustaw wymagania dla CAR
+                carBrandSelect.setAttribute('required', 'required');
+                bodyTypeSelect.setAttribute('required', 'required');
+                engineCapacityInput.setAttribute('required', 'required'); // Pojemność jest zawsze wymagana dla kalkulatora
+
+                // Usuń wymagania dla MOTO
+                motoBrandSelect.removeAttribute('required');
             } else {
                 carFields.forEach(el => el.classList.add('hidden'));
                 motoFields.forEach(el => el.classList.remove('hidden'));
 
-                // Zmień wymagania
-                document.querySelector('[name="body_type"]').removeAttribute('required');
-                document.querySelector('[name="engine_capacity"]').setAttribute('required', 'required');
+                // Ustaw wymagania dla MOTO
+                motoBrandSelect.setAttribute('required', 'required');
+                engineCapacityInput.setAttribute('required', 'required'); // Pojemność jest zawsze wymagana dla kalkulatora
+
+                // Usuń wymagania dla CAR
+                carBrandSelect.removeAttribute('required');
+                bodyTypeSelect.removeAttribute('required');
             }
         }
 
