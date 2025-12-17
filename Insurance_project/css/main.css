@@ -408,6 +408,197 @@ select {
   }
 
   /* ============================================ */
+  /* ZAPISANE POJAZDY - Style */
+  /* ============================================ */
+  .saved-vehicles {
+    max-width: 900px;
+    margin: 20px auto;
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .vehicles-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #00897b;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .vehicles-count {
+    font-size: 14px;
+    font-weight: 500;
+    color: #666;
+    background: white;
+    padding: 2px 10px;
+    border-radius: 12px;
+  }
+
+  .vehicles-items {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .vehicle-item {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s;
+  }
+
+  .vehicle-item:hover {
+    box-shadow: 0 2px 12px rgba(0, 137, 123, 0.15);
+    border-color: #00897b;
+    transform: translateY(-2px);
+  }
+
+  .vehicle-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .vehicle-badge {
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+    background: linear-gradient(135deg, #00897b, #26a69a);
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 4px;
+    width: fit-content;
+  }
+
+  .vehicle-details {
+    font-size: 14px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .vehicle-details strong {
+    color: #00897b;
+  }
+
+  .vehicle-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .btn-use-vehicle {
+    background: linear-gradient(135deg, #00897b, #26a69a);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 137, 123, 0.3);
+  }
+
+  .btn-use-vehicle:hover {
+    background: linear-gradient(135deg, #00796b, #00897b);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 137, 123, 0.4);
+  }
+
+  .btn-use-vehicle:active {
+    transform: translateY(0);
+  }
+
+  .btn-delete-vehicle {
+    background: linear-gradient(135deg, #ef5350, #e53935);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(239, 83, 80, 0.3);
+  }
+
+  .btn-delete-vehicle:hover {
+    background: linear-gradient(135deg, #e53935, #d32f2f);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(239, 83, 80, 0.4);
+  }
+
+  .btn-delete-vehicle:active {
+    transform: translateY(0);
+  }
+
+  .no-vehicles {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+    font-size: 14px;
+  }
+
+  /* Form Actions - nowy kontener dla przycisków */
+  .form-actions {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 20px;
+  }
+
+  .save-vehicle-btn {
+    background: linear-gradient(135deg, #00897b, #26a69a);
+    color: white;
+    border: none;
+    padding: 14px 50px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 137, 123, 0.3);
+    letter-spacing: 0.5px;
+  }
+
+  .save-vehicle-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #00796b, #00897b);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 137, 123, 0.4);
+  }
+
+  .save-vehicle-btn:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  .save-vehicle-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: linear-gradient(135deg, #999, #888);
+  }
+
+  /* Dostosuj przycisk "Szukaj polisy" w form-actions */
+  .form-actions .search-btn {
+    margin: 0;
+    width: 100%;
+  }
+
+  /* ============================================ */
   /* OPCJE DODATKOWE - Sekcja */
   /* ============================================ */
 

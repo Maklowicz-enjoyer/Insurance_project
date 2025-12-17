@@ -3,6 +3,11 @@
 require_once __DIR__ . '/../scripts/session_check.php';
 require_once __DIR__ . '/../scripts/db_connect.php';
 
+// Generate CSRF token if not exists
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 // Pobierz marki samochodów
 $carBrandsStmt = $pdo->query("SELECT Brand_Name FROM CarBrands ORDER BY Brand_Name ASC");
 $carBrands = $carBrandsStmt->fetchAll(PDO::FETCH_COLUMN);
@@ -91,6 +96,19 @@ if (isset($_SESSION['user_id'])) {
       </div>
     </div>
     <?php endif; ?>
+
+    <!-- ============================================ -->
+    <!-- ZAPISANE POJAZDY -->
+    <!-- ============================================ -->
+    <div class="saved-vehicles" id="saved-vehicles-section">
+      <h3 class="vehicles-title">Zapisane pojazdy <span class="vehicles-count">(0/5)</span></h3>
+      <div class="vehicles-items" id="saved-vehicles-list">
+        <!-- Pojazdy zostaną załadowane przez JavaScript -->
+        <div class="no-vehicles" id="no-vehicles-msg">
+          <p>Nie masz jeszcze zapisanych pojazdów. Wypełnij formularz i kliknij "Zapisz pojazd".</p>
+        </div>
+      </div>
+    </div>
 
     <div class="form-container">
       <div class="vehicle-type-switch">
@@ -282,7 +300,12 @@ if (isset($_SESSION['user_id'])) {
           </label>
         </div>
 
-        <button type="submit" class="search-btn">SZUKAJ POLISY</button>
+        <div class="form-actions">
+          <button type="button" class="save-vehicle-btn" id="save-vehicle-btn">
+            ZAPISZ POJAZD
+          </button>
+          <button type="submit" class="search-btn">SZUKAJ POLISY</button>
+        </div>
       </form>
 
     </div>
@@ -409,6 +432,301 @@ if (isset($_SESSION['user_id'])) {
         }
       });
     });
+
+    // ============================================
+    // ZAPISANE POJAZDY - Obsługa
+    // ============================================
+    const savedVehiclesSection = document.getElementById('saved-vehicles-section');
+    const savedVehiclesList = document.getElementById('saved-vehicles-list');
+    const noVehiclesMsg = document.getElementById('no-vehicles-msg');
+    const saveVehicleBtn = document.getElementById('save-vehicle-btn');
+    const csrfToken = '<?php echo $_SESSION['csrf_token']; ?>';
+
+    /**
+     * Pobierz zapisane pojazdy z API
+     */
+    async function loadSavedVehicles() {
+      try {
+        const response = await fetch('../scripts/vehicle_api.php?action=list');
+        const result = await response.json();
+
+        if (result.success) {
+          displayVehicles(result.data);
+        } else {
+          console.error('Failed to load vehicles:', result.message);
+        }
+      } catch (error) {
+        console.error('Error loading vehicles:', error);
+      }
+    }
+
+    /**
+     * Wyświetl pojazdy w UI
+     */
+    function displayVehicles(vehicles) {
+      const count = vehicles.length;
+      document.querySelector('.vehicles-count').textContent = `(${count}/5)`;
+
+      // Pokaż lub ukryj sekcję w zależności od tego, czy są pojazdy
+      if (count === 0) {
+        noVehiclesMsg.style.display = 'block';
+        savedVehiclesSection.style.display = 'none';
+        return;
+      }
+
+      savedVehiclesSection.style.display = 'block';
+      noVehiclesMsg.style.display = 'none';
+
+      // Wyczyść listę
+      savedVehiclesList.innerHTML = '';
+
+      // Renderuj pojazdy
+      vehicles.forEach(vehicle => {
+        const vehicleItem = createVehicleElement(vehicle);
+        savedVehiclesList.appendChild(vehicleItem);
+      });
+
+      // Zablokuj przycisk "Zapisz pojazd" jeśli limit osiągnięty
+      if (count >= 5) {
+        saveVehicleBtn.disabled = true;
+        saveVehicleBtn.textContent = 'LIMIT OSIĄGNIĘTY (5/5)';
+        saveVehicleBtn.style.opacity = '0.5';
+      } else {
+        saveVehicleBtn.disabled = false;
+        saveVehicleBtn.textContent = 'ZAPISZ POJAZD';
+        saveVehicleBtn.style.opacity = '1';
+      }
+    }
+
+    /**
+     * Stwórz element HTML dla pojazdu
+     */
+    function createVehicleElement(vehicle) {
+      const div = document.createElement('div');
+      div.className = 'vehicle-item';
+      div.dataset.vehicleId = vehicle.Vehicle_ID;
+
+      const isCar = vehicle.Vehicle_type === 'CAR';
+      const badge = isCar ? 'Auto' : 'Motocykl';
+
+      // Buduj szczegóły pojazdu
+      let details = `<strong>${escapeHtml(vehicle.Brand)}</strong>`;
+
+      if (vehicle.Model) {
+        details += ` <span class="separator">•</span> <span>${escapeHtml(vehicle.Model)}</span>`;
+      }
+
+      details += ` <span class="separator">•</span> <span>${vehicle.Year}r.</span>`;
+
+      if (vehicle.Engine_capacity) {
+        details += ` <span class="separator">•</span> <span>${vehicle.Engine_capacity}cm³</span>`;
+      }
+
+      if (isCar && vehicle.Body_Type) {
+        details += ` <span class="separator">•</span> <span>${escapeHtml(vehicle.Body_Type)}</span>`;
+      }
+
+      if (isCar && vehicle.Fuel_Type) {
+        details += ` <span class="separator">•</span> <span>${escapeHtml(vehicle.Fuel_Type)}</span>`;
+      }
+
+      if (!isCar && vehicle.Motorcycle_Type) {
+        details += ` <span class="separator">•</span> <span>${escapeHtml(vehicle.Motorcycle_Type)}</span>`;
+      }
+
+      div.innerHTML = `
+        <div class="vehicle-info">
+          <span class="vehicle-badge">${badge}</span>
+          <div class="vehicle-details">${details}</div>
+        </div>
+        <div class="vehicle-actions">
+          <button type="button" class="btn-use-vehicle" data-vehicle='${JSON.stringify(vehicle)}'>
+            Użyj
+          </button>
+          <button type="button" class="btn-delete-vehicle" data-vehicle-id="${vehicle.Vehicle_ID}">
+            Usuń
+          </button>
+        </div>
+      `;
+
+      // Obsługa przycisku "Użyj"
+      div.querySelector('.btn-use-vehicle').addEventListener('click', function() {
+        const vehicleData = JSON.parse(this.dataset.vehicle);
+        fillFormWithVehicle(vehicleData);
+      });
+
+      // Obsługa przycisku "Usuń"
+      div.querySelector('.btn-delete-vehicle').addEventListener('click', function() {
+        const vehicleId = this.dataset.vehicleId;
+        deleteVehicle(vehicleId);
+      });
+
+      return div;
+    }
+
+    /**
+     * Wypełnij formularz danymi pojazdu
+     */
+    function fillFormWithVehicle(vehicle) {
+      const isCar = vehicle.Vehicle_type === 'CAR';
+
+      // Przełącz typ pojazdu
+      const switchBtn = document.querySelector(`.switch-btn[data-type="${isCar ? 'car' : 'motorcycle'}"]`);
+      if (switchBtn) {
+        switchBtn.click();
+      }
+
+      setTimeout(() => {
+        // Wypełnij pola
+        if (isCar && vehicle.Brand) {
+          document.getElementById('car-brand').value = vehicle.Brand;
+        } else if (!isCar && vehicle.Brand) {
+          document.getElementById('moto-brand').value = vehicle.Brand;
+        }
+
+        if (vehicle.Year) {
+          document.getElementById('year').value = vehicle.Year;
+        }
+
+        if (vehicle.Engine_capacity) {
+          document.getElementById('capacity').value = vehicle.Engine_capacity;
+        }
+
+        if (isCar && vehicle.Body_Type) {
+          document.getElementById('typ_nadwozia').value = vehicle.Body_Type;
+        }
+
+        if (isCar && vehicle.Fuel_Type) {
+          document.getElementById('fuel').value = vehicle.Fuel_Type;
+        }
+
+        if (!isCar && vehicle.Motorcycle_Type) {
+          document.getElementById('motorcycle-type').value = vehicle.Motorcycle_Type;
+        }
+
+        if (!isCar && vehicle.Power_HP) {
+          document.getElementById('power').value = vehicle.Power_HP;
+        }
+
+        // Scroll do formularza
+        document.getElementById('insurance-form').scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+
+    /**
+     * Zapisz pojazd z formularza
+     */
+    async function saveVehicleFromForm() {
+      const vehicleType = vehicleTypeInput.value;
+      const isCar = vehicleType === 'CAR';
+
+      // Zbierz dane z formularza
+      const formData = new FormData();
+      formData.append('action', 'add');
+      formData.append('csrf_token', csrfToken);
+      formData.append('vehicle_type', vehicleType);
+
+      // Wspólne pola
+      const brand = isCar ?
+        document.getElementById('car-brand').value :
+        document.getElementById('moto-brand').value;
+
+      if (!brand) {
+        alert('Wybierz markę pojazdu');
+        return;
+      }
+
+      formData.append('brand', brand);
+      formData.append('year', document.getElementById('year').value || new Date().getFullYear());
+      formData.append('engine_capacity', document.getElementById('capacity').value || 1600);
+
+      // Pola specyficzne dla samochodu
+      if (isCar) {
+        const bodyType = document.getElementById('typ_nadwozia').value;
+        const fuelType = document.getElementById('fuel').value;
+
+        if (bodyType) formData.append('body_type', bodyType);
+        if (fuelType) formData.append('fuel_type', fuelType);
+      }
+
+      // Pola specyficzne dla motocykla
+      if (!isCar) {
+        const motoType = document.getElementById('motorcycle-type').value;
+        const powerHp = document.getElementById('power').value;
+
+        if (motoType) formData.append('motorcycle_type', motoType);
+        if (powerHp) formData.append('power_hp', powerHp);
+      }
+
+      try {
+        saveVehicleBtn.disabled = true;
+        saveVehicleBtn.textContent = 'ZAPISYWANIE...';
+
+        const response = await fetch('../scripts/vehicle_api.php', {
+          method: 'POST',
+          body: formData
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          alert('Pojazd został zapisany!');
+          loadSavedVehicles(); // Odśwież listę
+        } else {
+          alert('Błąd: ' + result.message);
+        }
+      } catch (error) {
+        console.error('Error saving vehicle:', error);
+        alert('Wystąpił błąd podczas zapisywania pojazdu');
+      } finally {
+        saveVehicleBtn.disabled = false;
+        saveVehicleBtn.textContent = 'ZAPISZ POJAZD';
+      }
+    }
+
+    /**
+     * Usuń pojazd
+     */
+    async function deleteVehicle(vehicleId) {
+      if (!confirm('Czy na pewno chcesz usunąć ten pojazd?')) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`../scripts/vehicle_api.php?id=${vehicleId}`, {
+          method: 'DELETE',
+          headers: {
+            'X-CSRF-Token': csrfToken
+          }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          loadSavedVehicles(); // Odśwież listę
+        } else {
+          alert('Błąd: ' + result.message);
+        }
+      } catch (error) {
+        console.error('Error deleting vehicle:', error);
+        alert('Wystąpił błąd podczas usuwania pojazdu');
+      }
+    }
+
+    /**
+     * Escape HTML to prevent XSS
+     */
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Obsługa przycisku "Zapisz pojazd"
+    saveVehicleBtn.addEventListener('click', saveVehicleFromForm);
+
+    // Załaduj pojazdy przy starcie strony
+    loadSavedVehicles();
   </script>
 </body>
 </html>
